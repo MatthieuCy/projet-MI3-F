@@ -1,9 +1,19 @@
 #include <stdio.h>
 #include <string.h>
 
+typedef struct{
+char *nom;
+char *espece;
+int annee;
+char *commentaire;
+int num;
+int poids;
+} Animal;
+
 typedef struct {
     char nom[50];
-} Animal;
+   int count;
+} AnimalCount;
 
 void affiche_animaux(Animal refuge[50]) {
     int i, c = 0;
