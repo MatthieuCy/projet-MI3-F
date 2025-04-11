@@ -12,7 +12,7 @@ int poids;
 
 typedef struct {
     char nom[50];
-   int count;
+   int cont;
 } AnimalCount;
 
 void affiche_animaux(Animal refuge[50]) {
@@ -54,7 +54,7 @@ void affiche_animaux(Animal refuge[50]) {
     // Tri des animaux par nombre décroissant
     for (i = 0; i < 3; i++) {
         for (int j = i + 1; j < 4; j++) {
-            if (animaux[i].count < animaux[j].count) {
+            if (animaux[i].cont < animaux[j].cont) {
                 // Échange des animaux
                 AnimalCount temp = animaux[i];
                 animaux[i] = animaux[j];
@@ -66,8 +66,8 @@ void affiche_animaux(Animal refuge[50]) {
     // Affichage du nombre d'animaux par espèce
     printf("\nNombre d'animaux par espèce :\n");
     for (i = 0; i < 4; i++) {
-        if (animaux[i].count > 0) {
-            printf("%s: %d\n", animaux[i].espece, animaux[i].count);
+        if (animaux[i].cont > 0) {
+            printf("%s: %d\n", animaux[i].espece, animaux[i].cont);
         }
     }
 }
@@ -75,7 +75,20 @@ void affiche_animaux(Animal refuge[50]) {
 
 
 void affiche_nouritture(Animal refuge[50]){
-
+int i;
+for(i=0;i<50;i++){
+if(refuge[i].espece=="autruche"){
+printf("L'animal numéro %d a besoind de 2.5kg de croquettes par jour.", i);
+}
+if(refuge[i].espece=="hamster"){
+printf("L'animal numéro %d a besoin de 200g par jour", i);
+}
+if(refuge[i].espece=="chien" || refuge[i].espece=="chat"){
+if(2025-refuge[i].annee <2){
+printf("L'animal numéro %d a besoin de 500 g par jour", i);
+else{
+printf("L'animal numéro %d a besoin de %d", i, refuge[i].poids*0.1);
+}
 int main(){
 
   Animal * refuge = malloc(sizeof(Animal) * SIZE);
