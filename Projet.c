@@ -89,6 +89,13 @@ printf("L'animal numéro %d a besoin de 500 g par jour", i);
 else{
 printf("L'animal numéro %d a besoin de %d", i, refuge[i].poids*0.1);
 }
+
+
+void affiche_nettoyage(Animal refuge[50]){
+int i;
+for(i=0; i<50;i++){
+
+
 int main(){
 
   Animal * refuge = malloc(sizeof(Animal) * SIZE);
