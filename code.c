@@ -7,7 +7,7 @@ char* NOM;
 char* ESPECE;
 int ANNEE;
 char* COMMENTAIRE;
-int NUM
+int NUM;
 int poids;
 }Animal;
 
