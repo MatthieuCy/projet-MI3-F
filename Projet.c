@@ -91,9 +91,55 @@ printf("L'animal numéro %d a besoin de %d", i, refuge[i].poids*0.1);
 }
 
 
-void affiche_nettoyage(Animal refuge[50]){
-int i;
-for(i=0; i<50;i++){
+void calculer_nettoyage_hebdo() {
+    
+    FILE* f = fopen("animaux/data.txt", "r");
+    if (!f) {
+        printf("Erreur : impossible d'ouvrir le fichier animaux/data.txt\n");
+        return;
+    }
+
+    int total_chien = 0, total_chat = 0, total_hamster = 0, total_autruche = 0;
+
+    char ligne[512];
+    while (fgets(ligne, sizeof(ligne), f)) {
+        int id, espece_int;
+        if (sscanf(ligne, "%d;%*[^;];%d", &id, &espece_int) == 2) {
+            switch (espece_int) {
+                case CHIEN: total_chien++; break;
+                case CHAT: total_chat++; break;
+                case HAMSTER: total_hamster++; break;
+                case AUTRUCHE: total_autruche++; break;
+            }
+        }
+    }
+    fclose(f);
+
+    int total_quotidien =
+        total_hamster * 10 +
+        total_chat * 10 +
+        total_autruche * 20 +
+        total_chien * 5;
+
+    int total_hebdo =
+        total_hamster * 20 +
+        total_chat * 20 +
+        total_autruche * 45 +
+        total_chien * 20;
+
+    // Ajoute nettoyage des cages vides : 2 min/jour
+    int nb_animaux = total_chien + total_chat + total_hamster + total_autruche;
+    int max_cages = 50;
+    int cages_vides = max_cages - nb_animaux;
+    total_quotidien += cages_vides * 2;
+
+    printf("\n🧽 Charge de nettoyage hebdomadaire :\n");
+    printf("- Minutes de nettoyage quotidien total (x7 jours) : %d min\n", total_quotidien * 7);
+    printf("- Minutes de nettoyage hebdomadaire : %d min\n", total_hebdo);
+    printf("🧼 ➤ Temps total pour la semaine : %d min (soit %.2f heures)\n",
+           total_quotidien * 7 + total_hebdo,
+           (total_quotidien * 7 + total_hebdo) / 60.0);
+}
 
 
 int main(){
