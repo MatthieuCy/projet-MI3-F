@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 
+
 #define FICHIER_ANIMAUX "animaux/animaux.txt"
 #define MAX_TAILLE 256
 
