@@ -3,7 +3,7 @@
 
 #include "animal.h"
 
-int charger_animaux(const char* nom_fichier, Animal* animaux, int max);
-void sauvegarder_animaux(const char* nom_fichier, Animal* animaux, int nb);
+int charger_animaux( char* nom_fichier, Animal* animaux, int max);
+void sauvegarder_animaux( char* nom_fichier, Animal* animaux, int nb);
 
 #endif
