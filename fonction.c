@@ -8,13 +8,13 @@ typedef struct {
    int cont;
 } AnimalCount;
 
-void affiche_animaux(Animal refuge[50]) {
+void affiche_animaux(Animal *animaux) {
     int i, c = 0;
     int chien = 0, chat = 0, autruche = 0, hamster = 0;
 
     // Comptage du nombre d'animaux présents dans le refuge
     for (i = 0; i < 50; i++) {
-        if (strlen(refuge[i].nom) != 0) {
+        if (strlen(*(animaux+i).nom) != 0) {
             c++;
         }
     }
@@ -22,16 +22,16 @@ void affiche_animaux(Animal refuge[50]) {
 
     // Comptage du nombre d'animaux par espèce
     for (i = 0; i < 50; i++) {
-        if (strcmp(refuge[i].nom, "chien") == 0) {
+        if (strcmp(*(animaux+i).nom, "chien") == 0) {
             chien++;
         }
-        if (strcmp(refuge[i].nom, "chat") == 0) {
+        if (strcmp(*(animaux+i).nom, "chat") == 0) {
             chat++;
         }
-        if (strcmp(refuge[i].nom, "autruche") == 0) {
+        if (strcmp(*(animaux+i).nom, "autruche") == 0) {
             autruche++;
         }
-        if (strcmp(refuge[i].nom, "hamster") == 0) {
+        if (strcmp(*(animaux+i).nom, "hamster") == 0) {
             hamster++;
         }
     }
@@ -47,11 +47,11 @@ void affiche_animaux(Animal refuge[50]) {
     // Tri des animaux par ordre décroissant
     for (i = 0; i < 3; i++) {
         for (int j = i + 1; j < 4; j++) {
-            if (animaux[i].cont < animaux[j].cont) {
+            if (*(animaux+i).cont < animaux[j].cont) {
                 // Échange des animaux
-                AnimalCount temp = animaux[i];
-                animaux[i] = animaux[j];
-                animaux[j] = temp;
+                AnimalCount temp = *(animaux+i);
+                *(animaux+i) = *(animaux+j);
+                *(animaux+j) = temp;
             }
         }
     }
