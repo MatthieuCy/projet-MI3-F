@@ -13,31 +13,27 @@ void affiche_animaux(Animal *animaux) {
     int chien = 0, chat = 0, autruche = 0, hamster = 0;
 
     // Comptage du nombre d'animaux présents dans le refuge
-    for (i = 0; i < 50; i++) {
-        if (strlen(*(animaux+i).nom) != 0) {
+ for (i = 0; i < 50; i++) {
+        if (strlen(animaux[i].nom) != 0) {
             c++;
+
+            // Comptage du nombre d'animaux par espèce
+            if (strcmp(animaux[i].espece, "chien") == 0) {
+                chien++;
+            } else if (strcmp(animaux[i].espece, "chat") == 0) {
+                chat++;
+            } else if (strcmp(animaux[i].espece, "autruche") == 0) {
+                autruche++;
+            } else if (strcmp(animaux[i].espece, "hamster") == 0) {
+                hamster++;
+            }
         }
     }
+
     printf("Il y a %d animaux dans le refuge.\n", c);
 
-    // Comptage du nombre d'animaux par espèce
-    for (i = 0; i < 50; i++) {
-        if (strcmp(*(animaux+i).nom, "chien") == 0) {
-            chien++;
-        }
-        if (strcmp(*(animaux+i).nom, "chat") == 0) {
-            chat++;
-        }
-        if (strcmp(*(animaux+i).nom, "autruche") == 0) {
-            autruche++;
-        }
-        if (strcmp(*(animaux+i).nom, "hamster") == 0) {
-            hamster++;
-        }
-    }
-
     // Tableau pour stocker les animaux et leur nombre
-    AnimalCount animaux[4] = {
+    AnimalCount compteEspeces[4] = {
         {"chien", chien},
         {"chat", chat},
         {"autruche", autruche},
@@ -47,11 +43,10 @@ void affiche_animaux(Animal *animaux) {
     // Tri des animaux par ordre décroissant
     for (i = 0; i < 3; i++) {
         for (int j = i + 1; j < 4; j++) {
-            if (*(animaux+i).cont < animaux[j].cont) {
-                // Échange des animaux
-                AnimalCount temp = *(animaux+i);
-                *(animaux+i) = *(animaux+j);
-                *(animaux+j) = temp;
+            if (compteEspeces[i].cont < compteEspeces[j].cont) {
+                AnimalCount temp = compteEspeces[i];
+                compteEspeces[i] = compteEspeces[j];
+                compteEspeces[j] = temp;
             }
         }
     }
@@ -59,12 +54,11 @@ void affiche_animaux(Animal *animaux) {
     // Affichage du nombre d'animaux par espèce
     printf("\nNombre d'animaux par espèce :\n");
     for (i = 0; i < 4; i++) {
-        if (*(animaux+i).cont > 0) {
-            printf("%s: %d\n", animaux[i].espece, animaux[i].cont);
+        if (compteEspeces[i].cont > 0) {
+            printf("%s: %d\n", compteEspeces[i].espece, compteEspeces[i].cont);
         }
     }
 }
-
 
 
 void affiche_nouritture(Animal *animaux){
