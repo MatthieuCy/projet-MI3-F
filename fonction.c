@@ -67,7 +67,7 @@ void affiche_animaux(Animal refuge[50]) {
 
 
 
-void affiche_nouritture(Animal *animauxrefuge[50]){
+void affiche_nouritture(Animal *animauxrefuge){
 int i;
 for(i=0;i<50;i++){
 if(refuge[i].espece=="autruche"){
