@@ -64,13 +64,13 @@ void affiche_animaux(Animal *animaux) {
 void affiche_nouritture(Animal *animaux){
 int i;
 for(i=0;i<50;i++){
-if(refuge[i].espece=="autruche"){
+if(animaux[i].espece=="autruche"){
 printf("L'animal numéro %d a besoind de 2.5kg de croquettes par jour.", i);
 }
-if(refuge[i].espece=="hamster"){
+if(animaux[i].espece=="hamster"){
 printf("L'animal numéro %d a besoin de 200g par jour", i);
 }
-if(refuge[i].espece=="chien" || refuge[i].espece=="chat"){
+if(animaux[i].espece=="chien" || animaux[i].espece=="chat"){
 if(2025-refuge[i].annee <2){
 printf("L'animal numéro %d a besoin de 500 g par jour", i);
 else{
