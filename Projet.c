@@ -142,17 +142,7 @@ void calculer_nettoyage_hebdo() {
 }
 
 
-int main(){
-
-  Animal * refuge = malloc(sizeof(Animal) * SIZE);
-  if(refuge == NULL){
-    printf("Erreur d'allocation mémoire");
-    exit(1);
-  }
-
-
-    
-  return 0;
+n 0;
 }
     
     
