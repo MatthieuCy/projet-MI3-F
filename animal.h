@@ -11,7 +11,7 @@ typedef struct {
 } Animal;
 
 // Fonctions
-Animal creer_animal(int id, const char* nom, const char* espece, int annee, float poids, const char* commentaire);
+Animal creer_animal(int id,  char* nom,  char* espece, int annee, float poids, char* commentaire);
 void afficher_animal(Animal a);
 
 #endif
