@@ -59,7 +59,7 @@ void affiche_animaux(Animal *animaux) {
     // Affichage du nombre d'animaux par espèce
     printf("\nNombre d'animaux par espèce :\n");
     for (i = 0; i < 4; i++) {
-        if (animaux[i].cont > 0) {
+        if (*(animaux+i).cont > 0) {
             printf("%s: %d\n", animaux[i].espece, animaux[i].cont);
         }
     }
