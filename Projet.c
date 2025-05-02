@@ -50,7 +50,7 @@ void affiche_animaux(Animal refuge[50]) {
         {"hamster", hamster}
     };
 
-    // Tri des animaux par nombre décroissant
+    // Tri des animaux par ordre décroissant
     for (i = 0; i < 3; i++) {
         for (int j = i + 1; j < 4; j++) {
             if (animaux[i].cont < animaux[j].cont) {
@@ -100,16 +100,17 @@ void calculer_nettoyage_hebdo() {
 
     int total_chien = 0, total_chat = 0, total_hamster = 0, total_autruche = 0;
 
-    char ligne[512];
+  char ligne[512];
     while (fgets(ligne, sizeof(ligne), f)) {
-        int id, espece_int;
-        if (sscanf(ligne, "%d;%*[^;];%d", &id, &espece_int) == 2) {
-            switch (espece_int) {
-                case CHIEN: total_chien++; break;
-                case CHAT: total_chat++; break;
-                case HAMSTER: total_hamster++; break;
-                case AUTRUCHE: total_autruche++; break;
-            }
+        int id;
+        char nom[100], espece[30];
+
+        // Lecture de l'identifiant, du nom, et de l'espèce (suppose que l'espèce est en 3e colonne)
+        if (sscanf(ligne, "%d;%[^;];%[^;]", &id, nom, espece) == 3) {
+            if (strcmp(espece, "chien") == 0) total_chien++;
+            else if (strcmp(espece, "chat") == 0) total_chat++;
+            else if (strcmp(espece, "hamster") == 0) total_hamster++;
+            else if (strcmp(espece, "autruche") == 0) total_autruche++;
         }
     }
     fclose(f);
