@@ -1,13 +1,7 @@
 
-
-typedef struct{
-char *nom;
-char *espece;
-int annee;
-char *commentaire;
-int num;
-int poids;
-} Animal;
+#include <stdio.h>
+#include <string.h>
+#include "fonction.h"
 
 typedef struct {
     char nom[50];
@@ -90,7 +84,7 @@ printf("L'animal numéro %d a besoin de %d", i, refuge[i].poids*0.1);
 }
 
 
-void calculer_nettoyage_hebdo() {
+void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
     
     FILE* f = fopen("animaux/data.txt", "r");
     if (!f) {
