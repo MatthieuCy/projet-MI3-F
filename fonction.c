@@ -67,7 +67,7 @@ void affiche_animaux(Animal refuge[50]) {
 
 
 
-void affiche_nouritture(Animal refuge[50]){
+void affiche_nouritture(Animal *animauxrefuge[50]){
 int i;
 for(i=0;i<50;i++){
 if(refuge[i].espece=="autruche"){
@@ -99,7 +99,7 @@ void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
         int id;
         char nom[100], espece[30];
 
-        // Lecture de l'identifiant, du nom, et de l'espèce (suppose que l'espèce est en 3e colonne)
+        // Lecture de l'identifiant, du nom, et de l'espèce 
         if (sscanf(ligne, "%d;%[^;];%[^;]", &id, nom, espece) == 3) {
             if (strcmp(espece, "chien") == 0) total_chien++;
             else if (strcmp(espece, "chat") == 0) total_chat++;
@@ -135,8 +135,36 @@ void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
            (total_quotidien * 7 + total_hebdo) / 60.0);
 }
 
-
-n 0;
+int calculer_age(int annee_naissance) {
+    // Utilise l'année actuelle (2025)
+    return 2025 - annee_naissance;
 }
-    
+
+void afficher_par_tranche_age( Animal* animaux, int nb_animaux) {
+    int tranche1 = 0, tranche2 = 0, tranche3 = 0, tranche4 = 0;
+
+    for (int i = 0; i < nb_animaux; i++) {
+        int age = calculer_age(animaux[i].annee_naissance);
+        if (age < QUARTILE_AGE_1) {
+            tranche1++;
+        } else if (age < QUARTILE_AGE_2) {
+            tranche2++;
+        } else if (age < QUARTILE_AGE_3) {
+            tranche3++;
+        } else {
+            tranche4++;
+        }
+    }
+
+    printf("\n📊 Répartition par tranche d'âge (INV_AGE_ASC) :\n");
+    printf("Total d'animaux : %d\n", nb_animaux);
+    printf("- Moins de %d ans : %d animaux\n", QUARTILE_AGE_1, tranche1);
+    printf("- Moins de %d ans : %d animaux\n", QUARTILE_AGE_2, tranche2);
+    printf("- Moins de %d ans : %d animaux\n", QUARTILE_AGE_3, tranche3);
+    printf("- Plus de %d ans : %d animaux\n", QUARTILE_AGE_3, tranche4);
+}
+
+
+
+
     
