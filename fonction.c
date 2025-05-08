@@ -63,6 +63,7 @@ void affiche_animaux(Animal *animaux) {
 
 void affiche_nouritture(Animal *animaux){
 int i;
+//affiche le nombres de kg dont l'animal a besoin paar jour
 for(i=0;i<50;i++){
 if(animaux[i].espece=="autruche"){
 printf("L'animal numéro %d a besoind de 2.5kg de croquettes par jour.", i);
@@ -89,11 +90,14 @@ void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
     int total_chien = 0, total_chat = 0, total_hamster = 0, total_autruche = 0;
 
   char ligne[512];
+    // fgets lit au maximum 511 caractères, continue tant qu'il y a des lignes à lire
     while (fgets(ligne, sizeof(ligne), f)) {
         int id;
         char nom[100], espece[30];
 
-        // Lecture de l'identifiant, du nom, et de l'espèce 
+        // Lesscanf extrait les données de la ligne formatée. Si les 3 éléments sont bien extraits (== 3), on continue.
+
+
         if (sscanf(ligne, "%d;%[^;];%[^;]", &id, nom, espece) == 3) {
             if (strcmp(espece, "chien") == 0) total_chien++;
             else if (strcmp(espece, "chat") == 0) total_chat++;
@@ -156,6 +160,14 @@ void afficher_par_tranche_age( Animal* animaux, int nb_animaux) {
     printf("- Moins de %d ans : %d animaux\n", QUARTILE_AGE_2, tranche2);
     printf("- Moins de %d ans : %d animaux\n", QUARTILE_AGE_3, tranche3);
     printf("- Plus de %d ans : %d animaux\n", QUARTILE_AGE_3, tranche4);
+}
+
+void menu() {
+    printf("\n=== MENU REFUGE ANIMALIER ===\n");
+    printf("1. Rechercher un/des animaux\n");
+    printf("2. Ajouter un animal\n");
+    printf("3. Adoption d’un animal\n");
+    printf("0. Quitter\n");
 }
 
 
