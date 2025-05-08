@@ -15,8 +15,7 @@ void afficher_menu_principal() {
         printf("Veuillez choisir une action :\n");
         printf("1. 🔍 Rechercher un ou plusieurs animaux\n");
         printf("2. ➕ Ajouter un nouvel animal\n");
-        printf("3. ❤️ Adoption d'un animal\n");
-     
+        printf("3. ❤️ Adoption d'un animal\n);
         printf("0. 🚪 Quitter l'application\n");
         printf("Votre choix : ");
         
