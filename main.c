@@ -1,11 +1,7 @@
-#include <main.h>
+#include "main.h"
  #include <stdio.h>
 #include <stdlib.h>
 
-// Déclarations des fonctions associées aux actions
-void rechercher_animaux();
-void ajouter_animal();
-void adopter_animal();
 
 void afficher_menu_principal() {
     int choix;
