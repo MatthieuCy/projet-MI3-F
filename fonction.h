@@ -1,5 +1,5 @@
-#ifndef STATISTIQUES_H
-#define STATISTIQUES_H
+#ifndef FONCTION_H
+#define FONCTION_H
 
 #include "animal.h"
 
