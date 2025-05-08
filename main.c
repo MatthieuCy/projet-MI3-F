@@ -6,7 +6,6 @@
 Animal animaux[MAX_ANIMAUX];  // Tableau pour stocker jusqu'à 50 animaux
 int nb_animaux = 0;  // Nombre actuel d'animaux
 
-
 void afficher_menu_principal() {
     int choix;
 
