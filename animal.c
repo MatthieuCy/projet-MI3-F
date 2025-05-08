@@ -5,11 +5,11 @@
 Animal creer_animal(int id, const char* nom, const char* espece, int annee, float poids, const char* commentaire) {
     Animal a;
     a.id = id;
-    strncpy(a.nom, nom, sizeof(a.nom));
-    strncpy(a.espece, espece, sizeof(a.espece));
+    strncpy(a.nom, nom, sizeof(a.nom)-1);
+    strncpy(a.espece, espece, sizeof(a.espece)-1);
     a.annee_naissance = annee;
     a.poids = poids;
-    strncpy(a.commentaire, commentaire, sizeof(a.commentaire));
+    strncpy(a.commentaire, commentaire, sizeof(a.commentaire)-1);
     return a;
 }
 
