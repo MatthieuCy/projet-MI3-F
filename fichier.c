@@ -3,6 +3,7 @@
 #include "fichier.h"
 
 //lis les lignes du fichier
+
 int charger_animaux(const char* nom_fichier, Animal* animaux, int max) {
     FILE* f = fopen(nom_fichier, "r");
     if (!f) return 0;
