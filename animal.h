@@ -1,17 +1,19 @@
 #ifndef ANIMAL_H
 #define ANIMAL_H
-
+#define MAX_NOM 50
+#define MAX_ESPECE 30
+#define MAX_COMMENTAIRE 200
 typedef struct {
     int id;
-    char nom[50];
-    char espece[30];   // Chien, Chat, etc.
+    char nom[MAX_NOM];
+    char espece[MAX_ESPECE];   // Chien, Chat, etc.
     int annee_naissance;
     float poids;
-    char commentaire[200];
+    char commentaire[MAX_COMMENTAIRE];
 } Animal;
 
 // Fonctions
-Animal creer_animal(int id,  char* nom,  char* espece, int annee, float poids, char* commentaire);
+Animal creer_animal(int id, const char* nom, const char* espece, int annee, float poids, const char* commentaire);
 void afficher_animal(Animal a);
 
 #endif
