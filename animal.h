@@ -3,6 +3,7 @@
 #define MAX_NOM 50
 #define MAX_ESPECE 30
 #define MAX_COMMENTAIRE 200
+
 typedef struct {
     int id;
     char nom[MAX_NOM];
