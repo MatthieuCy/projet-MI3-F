@@ -16,4 +16,7 @@ typedef struct {
 Animal creer_animal(int id, const char* nom, const char* espece, int annee, float poids, const char* commentaire);
 void afficher_animal(Animal a);
 
+int charger_animaux(const char* nom_fichier, Animal* animaux, int max);
+  
+void sauvegarder_animaux(const char* nom_fichier, Animal* animaux, int nb);
 #endif
