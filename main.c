@@ -2,6 +2,9 @@
  #include <stdio.h>
 #include <stdlib.h>
 
+// Déclaration du tableau d'animaux
+Animal animaux[MAX_ANIMAUX];  // Tableau pour stocker jusqu'à 50 animaux
+int nb_animaux = 0;  // Nombre actuel d'animaux
 
 
 void afficher_menu_principal() {
@@ -43,4 +46,17 @@ void afficher_menu_principal() {
         }
 
     } while (choix != 0);
+}
+
+int main() {
+    // Charger les animaux depuis un fichier
+    nb_animaux = charger_animaux("animaux/data.txt", animaux, MAX_ANIMAUX);
+
+    // Afficher le menu principal
+    afficher_menu_principal();
+
+    // Sauvegarder les animaux dans le fichier à la fermeture
+    sauvegarder_animaux("animaux/data.txt", animaux, nb_animaux);
+
+    return 0;
 }
