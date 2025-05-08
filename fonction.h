@@ -13,3 +13,5 @@ void rechercher_animaux();
 void adopter_animal();
 void afficher_animal(Animal a);
 int type_age(int age);
+
+#endif
