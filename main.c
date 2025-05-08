@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 
+
 void afficher_menu_principal() {
     int choix;
 
@@ -15,6 +16,7 @@ void afficher_menu_principal() {
         printf("1. 🔍 Rechercher un ou plusieurs animaux\n");
         printf("2. ➕ Ajouter un nouvel animal\n");
         printf("3. ❤️ Adoption d'un animal\n");
+     
         printf("0. 🚪 Quitter l'application\n");
         printf("Votre choix : ");
         
