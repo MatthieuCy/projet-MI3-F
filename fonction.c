@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 #include "fonction.h"
@@ -161,11 +160,3 @@ void afficher_par_tranche_age( Animal* animaux, int nb_animaux) {
     printf("- Moins de %d ans : %d animaux\n", QUARTILE_AGE_3, tranche3);
     printf("- Plus de %d ans : %d animaux\n", QUARTILE_AGE_3, tranche4);
 }
-
-
-
-
-
-
-
-    
