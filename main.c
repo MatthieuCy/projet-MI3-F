@@ -1,24 +1,49 @@
-#include <stdio.h>
-#include "main.h"
+#include <main.h>
+ #include <stdio.h>
+#include <stdlib.h>
 
- do {
-        afficher_menu();
-        scanf("%d", &choix);
+// Déclarations des fonctions associées aux actions
+void rechercher_animaux();
+void ajouter_animal();
+void adopter_animal();
+
+void afficher_menu_principal() {
+    int choix;
+
+    do {
+        printf("\n");
+        printf("=====================================\n");
+        printf("🐾  Bienvenue au ChenYl-Tech Refuge  🐾\n");
+        printf("=====================================\n");
+        printf("Veuillez choisir une action :\n");
+        printf("1. 🔍 Rechercher un ou plusieurs animaux\n");
+        printf("2. ➕ Ajouter un nouvel animal\n");
+        printf("3. ❤️ Adoption d'un animal\n");
+        printf("0. 🚪 Quitter l'application\n");
+        printf("Votre choix : ");
+        
+        if (scanf("%d", &choix) != 1) {
+            printf("Entrée invalide. Veuillez saisir un chiffre.\n");
+            while (getchar() != '\n'); // vider le buffer
+            continue;
+        }
 
         switch (choix) {
-            case 1: rechercher_animaux(animaux, nb_animaux); break;
-            case 2: ajouter_animal(animaux, &nb_animaux); break;
-            case 3: {
-                int id;
-                printf("ID de l’animal à adopter : ");
-                scanf("%d", &id);
-                adopter_animal(animaux, &nb_animaux, id);
+            case 1:
+                rechercher_animaux();
                 break;
-            }
-            case 4: inventaire_desc(animaux, nb_animaux); break;
-            case 5: inventaire_age(animaux, nb_animaux); break;
-            case 6: besoin_croquettes(animaux, nb_animaux); break;
-            case 7: charge_nettoyage(animaux, nb_animaux); break;
-            case 0: sauvegarder_animaux(animaux, nb_animaux); break;
-            default: printf("Choix invalide.\n");
+            case 2:
+                ajouter_animal();
+                break;
+            case 3:
+                adopter_animal();
+                break;
+            case 0:
+                printf("Fermeture de l'application... À bientôt !\n");
+                break;
+            default:
+                printf("Choix invalide. Veuillez réessayer.\n");
         }
+
+    } while (choix != 0);
+}
