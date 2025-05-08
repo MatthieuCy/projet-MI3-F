@@ -46,11 +46,6 @@ void adopter_animal() {
         printf("❌ Animal non trouvé.\n");
 }
 
-
-
-
-
-
 void rechercher_animaux() {
     char nom[50] = "", espece[30] = "";
     int type_age = -1;
