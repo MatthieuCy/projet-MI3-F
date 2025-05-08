@@ -164,10 +164,15 @@ void afficher_par_tranche_age( Animal* animaux, int nb_animaux) {
 
 void menu() {
     printf("\n=== MENU REFUGE ANIMALIER ===\n");
-    printf("1. Rechercher un/des animaux\n");
+   printf("1. Rechercher un animal\n");
     printf("2. Ajouter un animal\n");
-    printf("3. Adoption d’un animal\n");
+    printf("3. Adopter un animal\n");
+    printf("4. Inventaire par espèce\n");
+    printf("5. Inventaire par tranche d'âge\n");
+    printf("6. Besoin en croquettes\n");
+    printf("7. Charge de nettoyage\n");
     printf("0. Quitter\n");
+    printf("Votre choix : ");
 }
 
 
