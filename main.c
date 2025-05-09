@@ -1,4 +1,6 @@
 #include "main.h"
+#include "fonction.h"
+#include "recherche.h"
  #include <stdio.h>
 #include <stdlib.h>
 
