@@ -1,34 +1,15 @@
-
-EXEC = refuge
-
-
-SRCS = main.c fonction.c recherche.c animal.c
-
-
-OBJS = $(SRCS:.c=.o)
-
-
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=c11
+OBJ = main.o animal.o
 
+refuge: $(OBJ)
+	$(CC) $(CFLAGS) -o refuge $(OBJ)
 
-all: $(EXEC)
+main.o: main.c animal.h
+	$(CC) $(CFLAGS) -c main.c
 
-# Lier les objets pour créer l'exécutable
-$(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(EXEC)
-
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
+animal.o: animal.c animal.h
+	$(CC) $(CFLAGS) -c animal.c
 
 clean:
-	rm -f *.o
-
-
-fclean: clean
-	rm -f $(EXEC)
-
-
-re: fclean all
+	rm -f *.o refuge
