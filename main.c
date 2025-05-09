@@ -2,6 +2,8 @@
  #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_ANIMAUX 50
+
 // Déclaration du tableau d'animaux
 Animal animaux[MAX_ANIMAUX];  // Tableau pour stocker jusqu'à 50 animaux
 int nb_animaux = 0;  // Nombre actuel d'animaux
@@ -17,7 +19,7 @@ void afficher_menu_principal() {
         printf("Veuillez choisir une action :\n");
         printf("1. 🔍 Rechercher un ou plusieurs animaux\n");
         printf("2. ➕ Ajouter un nouvel animal\n");
-        printf("3. ❤️ Adoption d'un animal\n);
+        printf("3. ❤️ Adoption d'un animal\n");
         printf("0. 🚪 Quitter l'application\n");
         printf("Votre choix : ");
         
