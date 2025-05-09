@@ -18,8 +18,6 @@ Animal creer_animal(int id, const char* nom, const char* espece, int annee, floa
 
 void afficher_animal(Animal a);
 
-int charger_animaux(const char* nom_fichier, Animal* animaux, int max);
-  
-void sauvegarder_animaux(const char* nom_fichier, Animal* animaux, int nb);
-
+void charger_animaux(Animal* animaux, int* nb_animaux);
+void sauvegarder_animaux(Animal* animaux, int nb_animaux);
 #endif
