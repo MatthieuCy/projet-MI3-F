@@ -1,65 +1,39 @@
-#include "main.h"
-#include "fonction.h"
-#include "recherche.h"
- #include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h>
+#include "animal.h"
 
-#define MAX_ANIMAUX 50
+int main() {
+    Animal animaux[TAILLE_MAX];
+    int nb_animaux = charger_animaux(FICHIER_DATA, animaux, TAILLE_MAX);
 
-// Déclaration du tableau d'animaux
-Animal animaux[MAX_ANIMAUX];  // Tableau pour stocker jusqu'à 50 animaux
-int nb_animaux = 0;  // Nombre actuel d'animaux
-
-void afficher_menu_principal() {
     int choix;
-
     do {
-        printf("\n");
-        printf("=====================================\n");
-        printf("🐾  Bienvenue au ChenYl-Tech Refuge  🐾\n");
-        printf("=====================================\n");
-        printf("Veuillez choisir une action :\n");
-        printf("1. 🔍 Rechercher un ou plusieurs animaux\n");
-        printf("2. ➕ Ajouter un nouvel animal\n");
-        printf("3. ❤️ Adoption d'un animal\n");
-        printf("0. 🚪 Quitter l'application\n");
+        printf("\n--- Menu du refuge ---\n");
+        printf("1. Ajouter un animal\n");
+        printf("2. Afficher les animaux\n");
+        printf("3. Rechercher un animal\n");
+        printf("4. Enregistrer et quitter\n");
         printf("Votre choix : ");
-        
-        if (scanf("%d", &choix) != 1) {
-            printf("Entrée invalide. Veuillez saisir un chiffre.\n");
-            while (getchar() != '\n'); // vider le buffer
-            continue;
-        }
+        scanf("%d", &choix);
 
         switch (choix) {
             case 1:
-                rechercher_animaux();
+                ajouter_animal(animaux, &nb_animaux);
                 break;
             case 2:
-                ajouter_animal();
+                afficher_animaux(animaux, nb_animaux);
                 break;
             case 3:
-                adopter_animal();
+                rechercher_animaux(animaux, nb_animaux);
                 break;
-            case 0:
-                printf("Fermeture de l'application... À bientôt !\n");
+            case 4:
+                enregistrer_animaux(FICHIER_DATA, animaux, nb_animaux);
+                printf("Données enregistrées. Au revoir !\n");
                 break;
             default:
-                printf("Choix invalide. Veuillez réessayer.\n");
+                printf("Choix invalide.\n");
         }
-
-    } while (choix != 0);
-}
-
-int main() {
-    // Charger les animaux depuis un fichier
-    nb_animaux = charger_animaux("animaux/data.txt", animaux, MAX_ANIMAUX);
-
-    // Afficher le menu principal
-    afficher_menu_principal();
-
-    // Sauvegarder les animaux dans le fichier à la fermeture
-    sauvegarder_animaux("animaux/data.txt", animaux, nb_animaux);
+    } while (choix != 4);
 
     return 0;
 }
+
