@@ -120,3 +120,61 @@ int adopter_animal_par_id(Animal* animaux, int* nb_animaux, int id_a_supprimer) 
 
     return trouve;
 }
+
+
+void afficher_nombre_total_animaux(int nb_animaux) {
+    printf("Le nombre total d'animaux dans le refuge est : %d\n", nb_animaux);
+}
+
+int comparer_race(const void* a, const void* b) {
+    return strcmp(((Animal*)b)->race, ((Animal*)a)->race);  // Tri décroissant
+}
+
+void afficher_nombre_par_espece(Animal* animaux, int nb_animaux) {
+    char races[TAILLE_MAX][NOM_TAILLE];
+    int nombre_par_race[TAILLE_MAX] = {0};
+    int race_count = 0;
+
+    for (int i = 0; i < nb_animaux; i++) {
+        int existe = 0;
+        for (int j = 0; j < race_count; j++) {
+            if (strcmp(animaux[i].race, races[j]) == 0) {
+                existe = 1;
+                break;
+            }
+        }
+
+        if (!existe) {
+            strcpy(races[race_count], animaux[i].race);
+            nombre_par_race[race_count] = 1;
+            race_count++;
+        } else {
+            for (int j = 0; j < race_count; j++) {
+                if (strcmp(animaux[i].race, races[j]) == 0) {
+                    nombre_par_race[j]++;
+                    break;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < race_count - 1; i++) {
+        for (int j = i + 1; j < race_count; j++) {
+            if (nombre_par_race[i] < nombre_par_race[j]) {
+                char temp[NOM_TAILLE];
+                strcpy(temp, races[i]);
+                strcpy(races[i], races[j]);
+                strcpy(races[j], temp);
+
+                int temp_count = nombre_par_race[i];
+                nombre_par_race[i] = nombre_par_race[j];
+                nombre_par_race[j] = temp_count;
+            }
+        }
+    }
+
+    printf("\nNombre d'animaux par espèce (race) :\n");
+    for (int i = 0; i < race_count; i++) {
+        printf("%s : %d\n", races[i], nombre_par_race[i]);
+    }
+}
