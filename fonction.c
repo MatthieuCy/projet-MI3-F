@@ -1,50 +1,30 @@
+#include "fonction.h"
 #include <stdio.h>
 #include <string.h>
-#include "fonction.h"
 
-#define QUARTILE_AGE_1 2
-#define QUARTILE_AGE_2 5
-#define QUARTILE_AGE_3 10
+#define QUARTILE_AGE_1 5
+#define QUARTILE_AGE_2 10
+#define QUARTILE_AGE_3 15
 
-typedef struct {
-    char nom[50];
-   int cont;
-} AnimalCount;
+// Fonction pour calculer l'âge de l'animal en fonction de son année de naissance
+int calculer_age(int annee_naissance) {
+    return 2025 - annee_naissance;
+}
 
-void affiche_animaux(Animal *animaux) {
-    int i, c = 0;
-    int chien = 0, chat = 0, autruche = 0, hamster = 0;
-
-    // Comptage du nombre d'animaux présents dans le refuge
- for (i = 0; i < 50; i++) {
-        if (strlen(animaux[i].nom) != 0) {
-            c++;
-
-            // Comptage du nombre d'animaux par espèce
-            if (strcmp(animaux[i].espece, "chien") == 0) {
-                chien++;
-            } else if (strcmp(animaux[i].espece, "chat") == 0) {
-                chat++;
-            } else if (strcmp(animaux[i].espece, "autruche") == 0) {
-                autruche++;
-            } else if (strcmp(animaux[i].espece, "hamster") == 0) {
-                hamster++;
-            }
-        }
+// Affiche les animaux
+void affiche_animaux(Animal* animaux, int nb_animaux) {
+    // Compte les animaux par espèce
+    AnimalCount compteEspeces[4] = {{"chien", 0}, {"chat", 0}, {"hamster", 0}, {"autruche", 0}};
+    
+    for (int i = 0; i < nb_animaux; i++) {
+        if (strcmp(animaux[i].espece, "chien") == 0) compteEspeces[0].cont++;
+        else if (strcmp(animaux[i].espece, "chat") == 0) compteEspeces[1].cont++;
+        else if (strcmp(animaux[i].espece, "hamster") == 0) compteEspeces[2].cont++;
+        else if (strcmp(animaux[i].espece, "autruche") == 0) compteEspeces[3].cont++;
     }
 
-    printf("Il y a %d animaux dans le refuge.\n", c);
-
-    // Tableau pour stocker les animaux et leur nombre
-    AnimalCount compteEspeces[4] = {
-        {"chien", chien},
-        {"chat", chat},
-        {"autruche", autruche},
-        {"hamster", hamster}
-    };
-
-    // Tri des animaux par ordre décroissant
-    for (i = 0; i < 3; i++) {
+    // Tri des espèces en fonction du nombre d'animaux
+    for (int i = 0; i < 4 - 1; i++) {
         for (int j = i + 1; j < 4; j++) {
             if (compteEspeces[i].cont < compteEspeces[j].cont) {
                 AnimalCount temp = compteEspeces[i];
@@ -54,70 +34,46 @@ void affiche_animaux(Animal *animaux) {
         }
     }
 
-    // Affichage du nombre d'animaux par espèce
-    printf("\nNombre d'animaux par espèce :\n");
-    for (i = 0; i < 4; i++) {
-        if (compteEspeces[i].cont > 0) {
-            printf("%s: %d\n", compteEspeces[i].espece, compteEspeces[i].cont);
-        }
+    // Affichage
+    printf("\n🦓 Affichage des animaux par espèce (en ordre décroissant) :\n");
+    for (int i = 0; i < 4; i++) {
+        printf("%s : %d\n", compteEspeces[i].espece, compteEspeces[i].cont);
     }
 }
 
-
+// Affiche la nourriture en fonction des animaux
 void affiche_nourriture(Animal* animaux, int nb_animaux) {
     for (int i = 0; i < nb_animaux; i++) {
+        // Exemple de condition pour donner des nourritures spécifiques
         if (strcmp(animaux[i].espece, "autruche") == 0) {
-            printf("Autruche mange graines\n");
+            printf("%s mange du foin.\n", animaux[i].nom);
         } else if (strcmp(animaux[i].espece, "hamster") == 0) {
-            printf("Hamster mange céréales\n");
+            printf("%s mange des graines.\n", animaux[i].nom);
         } else if (strcmp(animaux[i].espece, "chien") == 0 || strcmp(animaux[i].espece, "chat") == 0) {
-            if (2025 - animaux[i].annee < 2) {
-                printf("%s (jeune) mange croquettes junior\n", animaux[i].nom);
-            } else {
-                printf("%s mange croquettes adulte\n", animaux[i].nom);
-            }
+            printf("%s mange des croquettes.\n", animaux[i].nom);
         }
     }
 }
 
-void calculer_nettoyage_hebdo() {
-    FILE* f = fopen("animaux/data.txt", "r");
-    if (!f) {
-        printf("Erreur : impossible d'ouvrir le fichier animaux/data.txt\n");
-        return;
-    }
-
+// Calcule le nettoyage hebdomadaire
+void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
     int total_chien = 0, total_chat = 0, total_hamster = 0, total_autruche = 0;
 
-    char ligne[512];
-    while (fgets(ligne, sizeof(ligne), f)) {
-        int id;
-        char nom[100], espece[30];
-
-        if (sscanf(ligne, "%d;%[^;];%[^;\n]", &id, nom, espece) == 3) {
-            if (strcmp(espece, "chien") == 0) total_chien++;
-            else if (strcmp(espece, "chat") == 0) total_chat++;
-            else if (strcmp(espece, "hamster") == 0) total_hamster++;
-            else if (strcmp(espece, "autruche") == 0) total_autruche++;
-        }
+    // Compte les animaux par espèce
+    for (int i = 0; i < nb_animaux; i++) {
+        if (strcmp(animaux[i].espece, "chien") == 0) total_chien++;
+        else if (strcmp(animaux[i].espece, "chat") == 0) total_chat++;
+        else if (strcmp(animaux[i].espece, "hamster") == 0) total_hamster++;
+        else if (strcmp(animaux[i].espece, "autruche") == 0) total_autruche++;
     }
-    fclose(f);
 
-    int total_quotidien =
-        total_hamster * 10 +
-        total_chat * 10 +
-        total_autruche * 20 +
-        total_chien * 5;
+    int total_quotidien = total_hamster * 10 + total_chat * 10 + total_autruche * 20 + total_chien * 5;
+    int total_hebdo = total_hamster * 20 + total_chat * 20 + total_autruche * 45 + total_chien * 20;
 
-    int total_hebdo =
-        total_hamster * 20 +
-        total_chat * 20 +
-        total_autruche * 45 +
-        total_chien * 20;
-
-    int nb_total_animaux = total_chien + total_chat + total_hamster + total_autruche;
+    // Ajoute nettoyage des cages vides : 2 min/jour
     int max_cages = 50;
-    int cages_vides = max_cages - nb_total_animaux;
+    int nb_animaux_total = total_chien + total_chat + total_hamster + total_autruche;
+    int cages_vides = max_cages - nb_animaux_total;
     total_quotidien += cages_vides * 2;
 
     printf("\n🧽 Charge de nettoyage hebdomadaire :\n");
@@ -128,12 +84,8 @@ void calculer_nettoyage_hebdo() {
            (total_quotidien * 7 + total_hebdo) / 60.0);
 }
 
-int calculer_age(int annee_naissance) {
-    // Utilise l'année actuelle (2025)
-    return 2025 - annee_naissance;
-}
-
-void afficher_par_tranche_age( Animal* animaux, int nb_animaux) {
+// Affiche la répartition des animaux par tranche d'âge
+void afficher_par_tranche_age(Animal* animaux, int nb_animaux) {
     int tranche1 = 0, tranche2 = 0, tranche3 = 0, tranche4 = 0;
 
     for (int i = 0; i < nb_animaux; i++) {
