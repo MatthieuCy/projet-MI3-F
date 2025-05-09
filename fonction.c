@@ -11,35 +11,7 @@ int calculer_age(int annee_naissance) {
     return 2025 - annee_naissance;
 }
 
-// Affiche les animaux
-void affiche_animaux(Animal* animaux, int nb_animaux) {
-    // Compte les animaux par espèce
-    AnimalCount compteEspeces[4] = {{"chien", 0}, {"chat", 0}, {"hamster", 0}, {"autruche", 0}};
-    
-    for (int i = 0; i < nb_animaux; i++) {
-        if (strcmp(animaux[i].espece, "chien") == 0) compteEspeces[0].cont++;
-        else if (strcmp(animaux[i].espece, "chat") == 0) compteEspeces[1].cont++;
-        else if (strcmp(animaux[i].espece, "hamster") == 0) compteEspeces[2].cont++;
-        else if (strcmp(animaux[i].espece, "autruche") == 0) compteEspeces[3].cont++;
-    }
 
-    // Tri des espèces en fonction du nombre d'animaux
-    for (int i = 0; i < 4 - 1; i++) {
-        for (int j = i + 1; j < 4; j++) {
-            if (compteEspeces[i].cont < compteEspeces[j].cont) {
-                AnimalCount temp = compteEspeces[i];
-                compteEspeces[i] = compteEspeces[j];
-                compteEspeces[j] = temp;
-            }
-        }
-    }
-
-    // Affichage
-    printf("\n🦓 Affichage des animaux par espèce (en ordre décroissant) :\n");
-    for (int i = 0; i < 4; i++) {
-        printf("%s : %d\n", compteEspeces[i].espece, compteEspeces[i].cont);
-    }
-}
 
 // Affiche la nourriture en fonction des animaux
 void affiche_nourriture(Animal* animaux, int nb_animaux) {
