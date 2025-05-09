@@ -1,9 +1,9 @@
-
+#include "recherche.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #define ANNEE_ACTUELLE 2025
-#include "recherche.h"
+
 
 void adopter_animal() {
     FILE* f = fopen("animaux/data.txt", "r");
