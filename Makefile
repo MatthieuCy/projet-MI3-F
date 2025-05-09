@@ -2,7 +2,7 @@
 EXEC = refuge
 
 
-SRCS = main.c fonction.c recherche.c
+SRCS = main.c fonction.c recherche.c animal.c
 
 
 OBJS = $(SRCS:.c=.o)
