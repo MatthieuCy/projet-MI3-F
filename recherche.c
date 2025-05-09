@@ -1,7 +1,8 @@
 #include "recherche.h"
 #include <stdio.h>
-#include <string.h>
+#include <strings.h>
 #include <time.h>
+#define MAX_ANIMAUX 50
 #define ANNEE_ACTUELLE 2025
 
 
