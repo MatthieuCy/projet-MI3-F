@@ -2,6 +2,10 @@
 #include <string.h>
 #include "fonction.h"
 
+#define QUARTILE_AGE_1 2
+#define QUARTILE_AGE_2 5
+#define QUARTILE_AGE_3 10
+
 typedef struct {
     char nom[50];
    int cont;
@@ -60,26 +64,23 @@ void affiche_animaux(Animal *animaux) {
 }
 
 
-void affiche_nouritture(Animal *animaux){
-int i;
-//affiche le nombres de kg dont l'animal a besoin paar jour
-for(i=0;i<50;i++){
-if(animaux[i].espece=="autruche"){
-printf("L'animal numéro %d a besoind de 2.5kg de croquettes par jour.", i);
-}
-if(animaux[i].espece=="hamster"){
-printf("L'animal numéro %d a besoin de 200g par jour", i);
-}
-if(animaux[i].espece=="chien" || animaux[i].espece=="chat"){
-if(2025-refuge[i].annee <2){
-printf("L'animal numéro %d a besoin de 500 g par jour", i);
-else{
-printf("L'animal numéro %d a besoin de %d", i, refuge[i].poids*0.1);
+void affiche_nourriture(Animal* animaux, int nb_animaux) {
+    for (int i = 0; i < nb_animaux; i++) {
+        if (strcmp(animaux[i].espece, "autruche") == 0) {
+            printf("Autruche mange graines\n");
+        } else if (strcmp(animaux[i].espece, "hamster") == 0) {
+            printf("Hamster mange céréales\n");
+        } else if (strcmp(animaux[i].espece, "chien") == 0 || strcmp(animaux[i].espece, "chat") == 0) {
+            if (2025 - animaux[i].annee < 2) {
+                printf("%s (jeune) mange croquettes junior\n", animaux[i].nom);
+            } else {
+                printf("%s mange croquettes adulte\n", animaux[i].nom);
+            }
+        }
+    }
 }
 
-
-void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
-    
+void calculer_nettoyage_hebdo() {
     FILE* f = fopen("animaux/data.txt", "r");
     if (!f) {
         printf("Erreur : impossible d'ouvrir le fichier animaux/data.txt\n");
@@ -88,16 +89,12 @@ void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
 
     int total_chien = 0, total_chat = 0, total_hamster = 0, total_autruche = 0;
 
-  char ligne[512];
-    // fgets lit au maximum 511 caractères, continue tant qu'il y a des lignes à lire
+    char ligne[512];
     while (fgets(ligne, sizeof(ligne), f)) {
         int id;
         char nom[100], espece[30];
 
-        // Lesscanf extrait les données de la ligne formatée. Si les 3 éléments sont bien extraits (== 3), on continue.
-
-
-        if (sscanf(ligne, "%d;%[^;];%[^;]", &id, nom, espece) == 3) {
+        if (sscanf(ligne, "%d;%[^;];%[^;\n]", &id, nom, espece) == 3) {
             if (strcmp(espece, "chien") == 0) total_chien++;
             else if (strcmp(espece, "chat") == 0) total_chat++;
             else if (strcmp(espece, "hamster") == 0) total_hamster++;
@@ -118,10 +115,9 @@ void calculer_nettoyage_hebdo(Animal* animaux, int nb_animaux) {
         total_autruche * 45 +
         total_chien * 20;
 
-    // Ajoute nettoyage des cages vides : 2 min/jour
-    int nb_animaux = total_chien + total_chat + total_hamster + total_autruche;
+    int nb_total_animaux = total_chien + total_chat + total_hamster + total_autruche;
     int max_cages = 50;
-    int cages_vides = max_cages - nb_animaux;
+    int cages_vides = max_cages - nb_total_animaux;
     total_quotidien += cages_vides * 2;
 
     printf("\n🧽 Charge de nettoyage hebdomadaire :\n");
