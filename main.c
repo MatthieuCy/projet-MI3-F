@@ -6,6 +6,7 @@ int main() {
     int nb_animaux = charger_animaux(FICHIER_DATA, animaux, TAILLE_MAX);
 
     int choix;
+    int réponse;
     do {
         printf("\n=== Menu du refuge ===\n\n");
         printf("1. Ajouter un animal\n");
@@ -20,6 +21,10 @@ int main() {
         switch (choix) {
             case 1:
                 ajouter_animal(animaux, &nb_animaux);
+                printf("souhaiter savoir combien l'animal mange par jour?  (1/0)");
+                scanf("%d", réponse);
+                if(réponse==1){
+                 calculer_croquettes(Animal a);
                 break;
             case 2:
                 rechercher_animaux(animaux, nb_animaux);
