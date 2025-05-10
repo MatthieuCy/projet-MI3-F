@@ -62,6 +62,7 @@ do {
     }
 
 } while (!id_valide);
+    a.id = atoi(input_id);
 
     // Poids : vérification des chiffres
     char input_poids[20];
