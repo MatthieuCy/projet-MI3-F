@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "animal.h"
+#include <ctype.h>
+#include <time.h>
 
 void afficher_animal(Animal a) {
     printf("Nom : %s\n", a.nom);
-    printf("Âge : %d\n", a.age);
+    printf("Poids : %d kg\n", a.poids);
+    printf("Âge : %d ans (%d)\n", a.age, 2025 - a.age);  // Âge avec l'année de naissance calculée
     printf("Race : %s\n", a.race);
-    printf("Genre : %c\n", a.genre);
     printf("Commentaire : %s\n", a.commentaire);
 }
 
@@ -18,26 +21,108 @@ void ajouter_animal(Animal* animaux, int* nb_animaux) {
 
     Animal a;
 
-    printf("Nom : ");
-    scanf("%s", a.nom);
-    printf("Âge : ");
-    scanf("%d", &a.age);
-    getchar();  // nettoie le buffer
-    printf("Race : ");
-    fgets(a.race, NOM_TAILLE, stdin);
-    a.race[strcspn(a.race, "\n")] = 0;
+    // Nom de l'animal : vérification que ce n'est pas un nombre
+    do {
+        printf("Nom : ");
+        scanf("%s", a.nom);
 
-    printf("Genre (M/F) : ");
-    scanf(" %c", &a.genre);
-    getchar();
+        int est_valide = 1;
+        for (int i = 0; a.nom[i] != '\0'; i++) {
+            if (!isalpha(a.nom[i])) {
+                est_valide = 0;
+                break;
+            }
+        }
+
+        if (!est_valide) {
+            printf("❌ Le nom doit être composé uniquement de lettres.\n");
+        }
+
+    } while (a.nom[0] == '\0' || !isalpha(a.nom[0]));
+
+    // Poids : vérification des chiffres
+    char input_poids[20];
+    int poids_valide = 0;
+
+    do {
+        printf("Poids en kg : ");
+        scanf("%s", input_poids);
+
+        poids_valide = 1;
+        for (int i = 0; input_poids[i] != '\0'; i++) {
+            if (!isdigit(input_poids[i])) {
+                poids_valide = 0;
+                break;
+            }
+        }
+
+        if (poids_valide) {
+            a.poids = atoi(input_poids);
+            if (a.poids <= 0) {
+                poids_valide = 0;
+                printf("❌ Entrez un poids supérieur à 0.\n");
+            }
+        } else {
+            printf("❌ Erreur : le poids doit être un nombre entier en kg (ex: 12).\n");
+        }
+
+    } while (!poids_valide);
+
+    // Âge : vérification des chiffres
+    char input_age[10];
+    int age_valide = 0;
+
+    do {
+        printf("Âge : ");
+        scanf("%s", input_age);
+
+        age_valide = 1;
+        for (int i = 0; input_age[i] != '\0'; i++) {
+            if (!isdigit(input_age[i])) {
+                age_valide = 0;
+                break;
+            }
+        }
+
+        if (age_valide) {
+            a.age = atoi(input_age);
+            if (a.age <= 0) {
+                age_valide = 0;
+                printf("❌ Entrez un âge supérieur à 0.\n");
+            }
+        } else {
+            printf("❌ Erreur : l'âge doit être un nombre entier (ex: 3).\n");
+        }
+
+    } while (!age_valide);
+
+    // Race : vérification des valeurs valides
+    int race_valide = 0;
+    do {
+        printf("Espèce (chat, chien, hamster, autruche) : ");
+        scanf("%s", a.race);
+
+        if (strcmp(a.race, "chat") == 0 || strcmp(a.race, "chien") == 0 ||
+            strcmp(a.race, "hamster") == 0 || strcmp(a.race, "autruche") == 0) {
+            race_valide = 1;
+        } else {
+            printf("❌ La race doit être l'un des suivants : chat, chien, hamster, autruche.\n");
+        }
+
+    } while (!race_valide);
+
+    // Commentaire
+    getchar();  // Nettoie le buffer
     printf("Commentaire : ");
     fgets(a.commentaire, COMMENTAIRE_TAILLE, stdin);
     a.commentaire[strcspn(a.commentaire, "\n")] = 0;
 
+    // Ajouter l'animal
     animaux[*nb_animaux] = a;
     (*nb_animaux)++;
-
-    printf("Animal ajouté avec succès.\n");
+    
+    printf("\n");
+    printf("Animal ajouté avec succès.\n\n");
 }
 
 int charger_animaux(const char* nom_fichier, Animal* animaux, int max) {
@@ -48,9 +133,8 @@ int charger_animaux(const char* nom_fichier, Animal* animaux, int max) {
     }
 
     int nb = 0;
-    while (nb < max &&
-           fscanf(fichier, "%s %d %s %c %[^\n]", animaux[nb].nom, &animaux[nb].age,
-                  animaux[nb].race, &animaux[nb].genre, animaux[nb].commentaire) == 5) {
+    while (nb < max && fscanf(fichier, "%d %s %d %s %[^\n]", &animaux[nb].id, animaux[nb].nom, &animaux[nb].poids, animaux[nb].race, animaux[nb].commentaire) == 5) {
+        animaux[nb].age = 2025 - (animaux[nb].poids);  // Calcul approximatif pour charger l'âge
         nb++;
     }
 
@@ -66,8 +150,7 @@ void enregistrer_animaux(const char* nom_fichier, Animal* animaux, int nb_animau
     }
 
     for (int i = 0; i < nb_animaux; i++) {
-        fprintf(fichier, "%s %d %s %c %s\n", animaux[i].nom, animaux[i].age,
-                animaux[i].race, animaux[i].genre, animaux[i].commentaire);
+        fprintf(fichier, "%d %s %d %s %s\n", animaux[i].id, animaux[i].nom, animaux[i].poids, animaux[i].race, animaux[i].commentaire);
     }
 
     fclose(fichier);
@@ -80,21 +163,116 @@ void afficher_animaux(Animal* animaux, int nb_animaux) {
     }
 }
 
+// Fonction de recherche avec plusieurs critères
 void rechercher_animaux(Animal* animaux, int nb_animaux) {
-    char nom_recherche[NOM_TAILLE];
-    printf("Nom à rechercher : ");
-    scanf("%s", nom_recherche);
+    int critere;
+    char input_nom[NOM_TAILLE], input_race[NOM_TAILLE];
+    int critere_age;
 
-    int trouve = 0;
-    for (int i = 0; i < nb_animaux; i++) {
-        if (strcmp(animaux[i].nom, nom_recherche) == 0) {
-            afficher_animal(animaux[i]);
-            trouve = 1;
+    printf("\n=== Recherche d'animal ===\n\n");
+    printf("Choisissez le critère de recherche:\n\n");
+    printf("1. Recherche par nom\n");
+    printf("2. Recherche par espèce\n");
+    printf("3. Recherche par âge (jeune ou senior)\n");
+    printf("\n");
+    printf("Votre choix : ");
+    scanf("%d", &critere);
+    printf("\n");
+
+    switch (critere) {
+        case 1: {
+            // Recherche par nom
+            printf("Entrez le nom de l'animal à rechercher : ");
+            scanf("%s", input_nom);
+
+            printf("\n=== Résultats de la recherche par nom ===\n\n");
+            int trouve = 0;
+            for (int i = 0; i < nb_animaux; i++) {
+                if (strcmp(animaux[i].nom, input_nom) == 0) {
+                    afficher_animal(animaux[i]);
+                    printf("\n");
+                    trouve = 1;
+                }
+            }
+            if (!trouve) {
+                printf("Aucun animal trouvé avec le nom %s.\n", input_nom);
+            }
+            break;
+        }
+        case 2: {
+            // Recherche par espèce
+            printf("Entrez l'espèce de l'animal (chat, chien, hamster, autruche) : ");
+            scanf("%s", input_race);
+
+            printf("\n=== Résultats de la recherche par espèce ===\n\n");
+            int trouve = 0;
+            for (int i = 0; i < nb_animaux; i++) {
+                if (strcmp(animaux[i].race, input_race) == 0) {
+                    afficher_animal(animaux[i]);
+                    printf("\n");
+                    trouve = 1;
+                }
+            }
+            if (!trouve) {
+                printf("Aucun animal trouvé avec l'espèce %s.\n", input_race);
+            }
+            break;
+        }
+        case 3: {
+            // Recherche par âge (jeune, adulte, senior)
+            printf("Choisissez le type d'âge :\n");
+            printf("1. Animaux jeunes (< 2 ans)\n");
+            printf("2. Animaux adultes (2 - 10 ans)\n");
+            printf("3. Animaux seniors (> 10 ans)\n");
+            printf("Votre choix : ");
+            scanf("%d", &critere_age);
+
+            printf("\n=== Résultats de la recherche par âge ===\n\n");
+            int trouve = 0;
+            for (int i = 0; i < nb_animaux; i++) {
+                if (critere_age == 1 && animaux[i].age < 2) {
+                    afficher_animal(animaux[i]);
+                    printf("\n");
+                    trouve = 1;
+                } 
+                else if (critere_age == 2 && animaux[i].age >= 2 && animaux[i].age <= 10) {
+                    afficher_animal(animaux[i]);
+                    printf("\n");
+                    trouve = 1;
+                }
+                else if (critere_age == 3 && animaux[i].age > 10) {
+                    afficher_animal(animaux[i]);
+                    printf("\n");
+                    trouve = 1;
+                }
+            }
+            if (!trouve) {
+                printf("Aucun animal trouvé selon les critères d'âge choisis.\n");
+            }
+            break;
+        }
+        default:
+            printf("Critère de recherche invalide.\n");
+            break;
+    }
+}
+
+void calculer_croquettes(Animal a) {
+    float croquettes;
+
+    if (strcmp(a.race, "hamster") == 0) {
+        croquettes = 20;  // 20g de croquettes
+    } else if (strcmp(a.race, "autruche") == 0) {
+        croquettes = 2500;  // 2.5kg = 2500g de croquettes
+    } else if (strcmp(a.race, "chat") == 0 || strcmp(a.race, "chien") == 0) {
+        if (a.age < 2) {
+            croquettes = 500;  // Moins de 2 ans -> 500g
+        } else {
+            croquettes = 100 * a.poids;  // 10% du poids de l'animal
         }
     }
 
-    if (!trouve)
-        printf("Aucun animal trouvé avec ce nom.\n");
+    printf("Cet animal a besoin de %.2f grammes de croquettes par jour.\n", croquettes);
 }
 
 int adopter_animal_par_id(Animal* animaux, int* nb_animaux, int id_a_supprimer) {
@@ -107,7 +285,7 @@ int adopter_animal_par_id(Animal* animaux, int* nb_animaux, int id_a_supprimer) 
             for (int j = i; j < *nb_animaux - 1; j++) {
                 animaux[j] = animaux[j + 1];
             }
-            (*nb_animaux)--;
+            (*nb_animaux)--; // Réduire le nombre d'animaux
             break;
         }
     }
@@ -121,80 +299,40 @@ int adopter_animal_par_id(Animal* animaux, int* nb_animaux, int id_a_supprimer) 
     return trouve;
 }
 
-
-void afficher_nombre_total_animaux(int nb_animaux) {
-    printf("Le nombre total d'animaux dans le refuge est : %d\n", nb_animaux);
-}
-
-int comparer_race(const void* a, const void* b) {
-    return strcmp(((Animal*)b)->race, ((Animal*)a)->race);  // Tri décroissant
-}
-
-void afficher_nombre_par_espece(Animal* animaux, int nb_animaux) {
-    char races[TAILLE_MAX][NOM_TAILLE];
-    int nombre_par_race[TAILLE_MAX] = {0};
-    int race_count = 0;
-
+void afficher_inventaire(Animal* animaux, int nb_animaux) {
+    // Compter le nombre d'animaux par espèce
+    int compteur[4] = {0};  // Tableau pour compter les animaux par espèce
+    const char* races[] = {"hamster", "autruche", "chat", "chien"};
+    
+    // Parcourir tous les animaux et compter les occurrences de chaque espèce
     for (int i = 0; i < nb_animaux; i++) {
-        int existe = 0;
-        for (int j = 0; j < race_count; j++) {
+        for (int j = 0; j < 4; j++) {
             if (strcmp(animaux[i].race, races[j]) == 0) {
-                existe = 1;
-                break;
-            }
-        }
-
-        if (!existe) {
-            strcpy(races[race_count], animaux[i].race);
-            nombre_par_race[race_count] = 1;
-            race_count++;
-        } else {
-            for (int j = 0; j < race_count; j++) {
-                if (strcmp(animaux[i].race, races[j]) == 0) {
-                    nombre_par_race[j]++;
-                    break;
-                }
+                compteur[j]++;
             }
         }
     }
-
-    for (int i = 0; i < race_count - 1; i++) {
-        for (int j = i + 1; j < race_count; j++) {
-            if (nombre_par_race[i] < nombre_par_race[j]) {
-                char temp[NOM_TAILLE];
-                strcpy(temp, races[i]);
-                strcpy(races[i], races[j]);
-                strcpy(races[j], temp);
-
-                int temp_count = nombre_par_race[i];
-                nombre_par_race[i] = nombre_par_race[j];
-                nombre_par_race[j] = temp_count;
+    
+    // Afficher le nombre total d'animaux
+    printf("Nombre total d'animaux dans le refuge : %d\n", nb_animaux);
+    
+    // Créer un tableau d'index pour trier les espèces
+    int indices[4] = {0, 1, 2, 3};  // Indices correspondant aux races
+    
+    // Trier les indices par nombre d'animaux de chaque espèce (tri décroissant)
+    for (int i = 0; i < 3; i++) {
+        for (int j = i + 1; j < 4; j++) {
+            if (compteur[indices[i]] < compteur[indices[j]]) {
+                int temp = indices[i];
+                indices[i] = indices[j];
+                indices[j] = temp;
             }
         }
     }
-
-    printf("\nNombre d'animaux par espèce (race) :\n");
-    for (int i = 0; i < race_count; i++) {
-        printf("%s : %d\n", races[i], nombre_par_race[i]);
+    
+    // Afficher les résultats triés
+    printf("\nDétail des animaux par espèce :\n");
+    for (int i = 0; i < 4; i++) {
+        printf("%s : %d\n", races[indices[i]], compteur[indices[i]]);
     }
-}
-
-void calculer_croquettes(Animal* animaux, int nb_animaux) {
-    double total_croquettes = 0.0;
-
-    for (int i = 0; i < nb_animaux; i++) {
-        if (strcmp(animaux[i].race, "hamster") == 0) {
-            total_croquettes += 20;  // 20g pour un hamster
-        } else if (strcmp(animaux[i].race, "autruche") == 0) {
-            total_croquettes += 2500;  // 2.5kg pour une autruche, soit 2500g
-        } else if (strcmp(animaux[i].race, "chat") == 0 || strcmp(animaux[i].race, "chien") == 0) {
-            if (animaux[i].age < 2) {
-                total_croquettes += 500;  // Moins de 2 ans : 500g pour un chat/chien
-            } else {
-                total_croquettes += 0.1 * animaux[i].age;  // Plus de 2 ans : 10% de son poids en croquettes
-            }
-        }
-    }
-
-    printf("Quantité totale de croquettes nécessaires : %.2f g\n", total_croquettes);
 }
