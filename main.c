@@ -6,7 +6,6 @@ int main() {
     int nb_animaux = charger_animaux(FICHIER_DATA, animaux, TAILLE_MAX);
 
     int choix;
-    int réponse;
     do {
         printf("\n=== Menu du refuge ===\n\n");
         printf("1. Ajouter un animal\n");
