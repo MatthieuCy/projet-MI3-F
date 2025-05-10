@@ -21,11 +21,6 @@ int main() {
         switch (choix) {
             case 1:
                 ajouter_animal(animaux, &nb_animaux);
-                printf("souhaiter savoir combien l'animal mange par jour?  (1/0)");
-                scanf("%d", &réponse);
-                if(réponse==1){
-                 calculer_croquettes(animaux);
-                }
                 break;
             case 2:
                 rechercher_animaux(animaux, nb_animaux);
