@@ -7,6 +7,7 @@
 
 void afficher_animal(Animal a) {
     printf("Nom : %s\n", a.nom);
+    printf("ID %d\n", a.id);
     printf("Poids : %d kg\n", a.poids);
     printf("Âge : %d ans (%d)\n", a.age, 2025 - a.age);  // Âge avec l'année de naissance calculée
     printf("Race : %s\n", a.race);
@@ -39,6 +40,28 @@ void ajouter_animal(Animal* animaux, int* nb_animaux) {
         }
 
     } while (a.nom[0] == '\0' || !isalpha(a.nom[0]));
+    //vérification id nombre positif
+
+    char input_id[20];
+int id_valide = 0;
+
+do {
+    printf("ID de l'animal : ");
+    scanf("%s", input_id);
+
+    id_valide = 1;
+    for (int i = 0; input_id[i] != '\0'; i++) {
+        if (!isdigit(input_id[i])) {
+            id_valide = 0;
+            break;
+        }
+    }
+
+    if (!id_valide) {
+        printf("❌ L'ID doit contenir uniquement des chiffres.\n");
+    }
+
+} while (!id_valide);
 
     // Poids : vérification des chiffres
     char input_poids[20];
