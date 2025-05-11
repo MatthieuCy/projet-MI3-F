@@ -120,7 +120,7 @@ do {
 
     } while (!age_valide);
 
-    // Race : vérification des valeurs valides
+    // Espèce : vérification des valeurs valides
     int race_valide = 0;
     do {
         printf("Espèce (chat, chien, hamster, autruche) : ");
