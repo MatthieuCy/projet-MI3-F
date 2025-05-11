@@ -158,7 +158,7 @@ int charger_animaux(const char* nom_fichier, Animal* animaux, int max) {
 
     int nb = 0;
     while (nb < max && fscanf(fichier, "%d %s %d %s %[^\n]", &animaux[nb].id, animaux[nb].nom, &animaux[nb].poids, animaux[nb].race, animaux[nb].commentaire) == 5) {
-        animaux[nb].age = 2025 - (animaux[nb].poids);  // Calcul approximatif pour charger l'âge
+        animaux[nb].age = 2025 - (animaux[nb].age);  // Calcul approximatif pour charger l'âge
         nb++;
     }
 
