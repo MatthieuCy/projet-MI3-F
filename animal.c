@@ -157,7 +157,7 @@ int charger_animaux(const char* nom_fichier, Animal* animaux, int max) {
     }
 
     int nb = 0;
-    while (nb < max && fscanf(fichier, "%d %d %s %d %s %[^\n]", &animaux[nb].id, animaux[nb].age, animaux[nb].nom, &animaux[nb].poids, animaux[nb].race, animaux[nb].commentaire) == 5) {
+    while (nb < max && fscanf(fichier, "%d %d %s %d %s %[^\n]", &animaux[nb].id, &animaux[nb].age, animaux[nb].nom, &animaux[nb].poids, animaux[nb].race, animaux[nb].commentaire) == 6) {
         nb++;
     }
 
