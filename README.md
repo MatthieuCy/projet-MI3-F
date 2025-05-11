@@ -32,6 +32,6 @@ animal.c : contient les fonctions principales (ajout, adoption, recherche, affic
 
 aanimal.h : déclarations des fonctions et de la structure animaal
 
-Pour l'éxxécution on utilise github et on faut:
+Pour l'éxxécution on utilise github et on fait:
 make
 ./refuge
