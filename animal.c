@@ -157,8 +157,7 @@ int charger_animaux(const char* nom_fichier, Animal* animaux, int max) {
     }
 
     int nb = 0;
-    while (nb < max && fscanf(fichier, "%d %s %d %s %[^\n]", &animaux[nb].id, animaux[nb].nom, &animaux[nb].poids, animaux[nb].race, animaux[nb].commentaire) == 5) {
-        animaux[nb].age = 2025 - (animaux[nb].age);  // Calcul approximatif pour charger l'âge
+    while (nb < max && fscanf(fichier, "%d %d %s %d %s %[^\n]", &animaux[nb].id, animaux[nb].age, animaux[nb].nom, &animaux[nb].poids, animaux[nb].race, animaux[nb].commentaire) == 5) {
         nb++;
     }
 
@@ -174,7 +173,7 @@ void enregistrer_animaux(const char* nom_fichier, Animal* animaux, int nb_animau
     }
 
     for (int i = 0; i < nb_animaux; i++) {
-        fprintf(fichier, "%d %s %d %s %s\n", animaux[i].id, animaux[i].nom, animaux[i].poids, animaux[i].race, animaux[i].commentaire);
+        fprintf(fichier, "%d %d %s %d %s %s\n", animaux[i].id, animaux[i].age, animaux[i].nom, animaux[i].poids, animaux[i].race, animaux[i].commentaire);
     }
 
     fclose(fichier);
