@@ -1,40 +1,38 @@
-Projet Distribution d'Eau
-Analyse de données d'un système de distribution d'eau en France via un script Shell et un programme C.
+# Projet Distribution d’Eau  
+Analyse de données d’un système de distribution d’eau en France  
+*(Shell + C)*
 
-Structure
-├── run.sh              # Script principal
-├── src/                # Code source C (AVL, histogrammes, fuites)
-├── data/               # Fichiers de données CSV
-└── output/             # Résultats (CSV + PNG)
-Compilation
-make -C src
-Utilisation
-Histogrammes des usines
-./run.sh <fichier_données> histo <mode>
-Modes disponibles :
+---
 
-max : Capacité maximale de traitement
-src : Volume total capté depuis les sources
-real : Volume réellement traité (après fuites)
-Exemple :
+## 📌 Objectif du projet
 
-./run.sh data/c-wildwater_v3.dat histo max
-Génère un fichier CSV trié et deux images PNG (50 plus petites / 10 plus grandes usines).
+Ce projet a pour objectif d’analyser des données issues d’un système de distribution d’eau potable en France.  
+Il permet notamment :
 
-Calcul des fuites
-./run.sh <fichier_données> leaks "<identifiant_usine>"
-Exemple :
+- la génération d’**histogrammes** sur les capacités et volumes des usines,
+- le **calcul des pertes d’eau (fuites)** en aval d’une usine donnée,
+- l’export des résultats sous forme de **fichiers CSV** et de **graphiques PNG**.
 
-./run.sh data/c-wildwater_v3.dat leaks "Plant #OU300273S"
-Calcule le volume d'eau perdu en aval de l'usine et l'ajoute à l'historique.
+Le projet repose sur :
+- un **script Shell** (`run.sh`) pour l’orchestration,
+- plusieurs **programmes en C** (structures AVL, calculs, agrégation),
+- **Gnuplot** pour la visualisation graphique.
 
-Sorties
-Les résultats sont stockés dans output/ :
+---
 
-histo_*.dat : Données CSV des histogrammes
-histo_*_small.png / histo_*_large.png : Graphiques
-leaks_history.dat : Historique des calculs de fuites
-Dépendances
-GCC
-Make
-Gnuplot (pour les graphiques PNG)
+## 📁 Structure du projet
+
+```text
+.
+├── run.sh                 # Script principal
+├── README.md              # Documentation
+├── src/                   # Code source C
+│   ├── Makefile
+│   ├── avl.c / avl.h      # Arbres AVL
+│   ├── histo.c            # Histogrammes
+│   ├── leaks.c            # Calcul des fuites
+│   └── ...
+├── data/                  # Données d’entrée (CSV / DAT)
+│   └── c-wildwater_v3.dat
+├── output/                # Résultats générés (CSV + PNG)
+└── .github/workflows/     # Intégration continue (GitHub Actions)
