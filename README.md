@@ -1,37 +1,40 @@
-# 🐾 Gestion d'un refuge pour animaux
+Projet Distribution d'Eau
+Analyse de données d'un système de distribution d'eau en France via un script Shell et un programme C.
 
-Ce projet est une application en langage C permettant de gérer un refuge pour animaux. Il permet d'ajouter, rechercher, adopter et afficher les animaux présents dans le refuge, tout en sauvegardant les données dans un fichier.
+Structure
+├── run.sh              # Script principal
+├── src/                # Code source C (AVL, histogrammes, fuites)
+├── data/               # Fichiers de données CSV
+└── output/             # Résultats (CSV + PNG)
+Compilation
+make -C src
+Utilisation
+Histogrammes des usines
+./run.sh <fichier_données> histo <mode>
+Modes disponibles :
 
-## 📌 Fonctionnalités
+max : Capacité maximale de traitement
+src : Volume total capté depuis les sources
+real : Volume réellement traité (après fuites)
+Exemple :
 
-- 🔹 Ajouter un nouvel animal (avec vérifications des champs : nom, espèce, poids, âge, etc.)
-- 🔍 Rechercher un animal par critère (ex. espèce ou nom)
-- ✅ Adopter un animal (suppression par ID)
-- 📋 Afficher l'inventaire de tous les animaux
-- 💾 Sauvegarde automatique des données dans un fichier texte
+./run.sh data/c-wildwater_v3.dat histo max
+Génère un fichier CSV trié et deux images PNG (50 plus petites / 10 plus grandes usines).
 
-## 🛠️ Structure des données
+Calcul des fuites
+./run.sh <fichier_données> leaks "<identifiant_usine>"
+Exemple :
 
-Chaque animal est représenté par une structure `Animal` contenant :
+./run.sh data/c-wildwater_v3.dat leaks "Plant #OU300273S"
+Calcule le volume d'eau perdu en aval de l'usine et l'ajoute à l'historique.
 
+Sorties
+Les résultats sont stockés dans output/ :
 
-typedef struct {
-    int id;
-    char nom[50];
-    int poids;
-    int age;
-    char race[30];
-    char commentaire[200];
-} Animal;
-
-
-
-main.c : point d'entrée de l'application
-
-animal.c : contient les fonctions principales (ajout, adoption, recherche, affichage)
-
-aanimal.h : déclarations des fonctions et de la structure animaal
-
-Pour l'éxxécution on utilise github et on fait:
-make
-./refuge
+histo_*.dat : Données CSV des histogrammes
+histo_*_small.png / histo_*_large.png : Graphiques
+leaks_history.dat : Historique des calculs de fuites
+Dépendances
+GCC
+Make
+Gnuplot (pour les graphiques PNG)
