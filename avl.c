@@ -15,7 +15,7 @@ static int avl_equilibre(NoeudAVL *noeud)
 {
     if (noeud == NULL)
         return 0;
-    /
+    
     return avl_hauteur(noeud->gauche) - avl_hauteur(noeud->droite);
 }
 
@@ -80,7 +80,7 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
 {
     if (racine == NULL)
     {
-        // Use the renamed avl_creer_noeud function and struct type
+        
         NoeudAVL *noeud = avl_creer_noeud(cle, donnee);
         if (trouve)
             *trouve = noeud;
@@ -96,7 +96,7 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
     }
     else if (cmp > 0)
     {
-        /
+        
         racine->droite = avl_inserer(racine->droite, cle, donnee, trouve);
     }
     else
@@ -118,10 +118,10 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
     if (balance < -1 && strcmp(cle, racine->droite->cle) > 0)
         return rotation_gauche(racine);
 
-    /
+    
     if (balance > 1 && strcmp(cle, racine->gauche->cle) > 0)
     {
-        // Use the renamed struct member and rotation functions
+        
         racine->gauche = rotation_gauche(racine->gauche);
         return rotation_droite(racine);
     }
@@ -129,7 +129,7 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
     
     if (balance < -1 && strcmp(cle, racine->droite->cle) < 0)
     {
-        // Use the renamed struct member and rotation functions
+        
         racine->droite = rotation_droite(racine->droite);
         return rotation_gauche(racine);
     }
@@ -144,10 +144,10 @@ NoeudAVL *avl_rechercher(NoeudAVL *racine, const char *cle)
         return NULL;
     int cmp = strcmp(cle, racine->cle);
     if (cmp < 0)
-        // Use the renamed struct member and avl_rechercher function
+        
         return avl_rechercher(racine->gauche, cle);
     if (cmp > 0)
-        // Use the renamed struct member and avl_rechercher function
+        
         return avl_rechercher(racine->droite, cle);
     return racine;
 }
@@ -157,10 +157,10 @@ void avl_parcourir_inverse(NoeudAVL *racine, void (*rappel)(NoeudAVL *, void *),
 {
     if (racine == NULL)
         return;
-    // Use the renamed struct member and avl_parcourir_inverse function
+    /
     avl_parcourir_inverse(racine->droite, rappel, arg);
     rappel(racine, arg);
-    // Use the renamed struct member and avl_parcourir_inverse function
+    
     avl_parcourir_inverse(racine->gauche, rappel, arg);
 }
 
@@ -169,7 +169,7 @@ void avl_liberer(NoeudAVL *racine, void (*liberer_donnee)(void *))
 {
     if (racine == NULL)
         return;
-    // Use the renamed struct member and avl_liberer function
+    
     avl_liberer(racine->gauche, liberer_donnee);
     avl_liberer(racine->droite, liberer_donnee);
     free(racine->cle);
