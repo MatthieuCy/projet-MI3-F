@@ -1,16 +1,19 @@
 #ifndef HISTO_H
 #define HISTO_H
 
+
 #include "avl.h"
 
+// Renommage de PlantData en DonneesUsine
 typedef struct
 {
-    char *id;
-    double max_volume;
-    double source_volume;
-    double real_volume;
-} PlantData;
+    char *identifiant; 
+    double volume_max; 
+    double volume_source; 
+    double volume_reel; 
+} DonneesUsine;
 
-int histo_process(const char *input_file, const char *output_file, const char *mode);
+
+int histo_traiter(const char *fichier_entree, const char *fichier_sortie, const char *mode);
 
 #endif
