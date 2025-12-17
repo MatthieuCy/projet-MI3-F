@@ -4,7 +4,7 @@
 
 #include "avl.h"
 
-// Renommage de PlantData en DonneesUsine
+
 typedef struct
 {
     char *identifiant; 
