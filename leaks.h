@@ -1,22 +1,25 @@
 #ifndef LEAKS_H
 #define LEAKS_H
 
+
 #include "avl.h"
 
-typedef struct ChildNode
+typedef struct MaillonEnfant
 {
-    struct TreeNode *child;
-    struct ChildNode *next;
-} ChildNode;
+    struct NoeudArbre *enfant;      
+    struct MaillonEnfant *suivant;  
+} MaillonEnfant;
 
-typedef struct TreeNode
+
+typedef struct NoeudArbre
 {
-    char *id;
-    double leak_pct;
-    int child_count;
-    ChildNode *children;
-} TreeNode;
+    char *identifiant;      
+    double pourcentage_fuite; 
+    int compte_enfants;     
+    MaillonEnfant *enfants; 
+} NoeudArbre;
 
-int leaks_process(const char *input_file, const char *output_file, const char *plant_id);
 
-#endif
+int fuites_traiter(const char *fichier_entree, const char *fichier_sortie, const char *id_usine);
+
+#endif // LEAKS_H
