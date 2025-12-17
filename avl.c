@@ -2,20 +2,20 @@
 #include <string.h>
 #include <stdio.h>
 
-// Renamed avl_height to avl_hauteur
+
 int avl_hauteur(NoeudAVL *noeud)
 {
     if (noeud == NULL)
         return 0;
-    return noeud->hauteur; // Use the renamed struct member
+    return noeud->hauteur; 
 }
 
-// Renamed avl_balance to avl_equilibre
+
 static int avl_equilibre(NoeudAVL *noeud)
 {
     if (noeud == NULL)
         return 0;
-    // Use the renamed avl_hauteur function and struct members
+    /
     return avl_hauteur(noeud->gauche) - avl_hauteur(noeud->droite);
 }
 
@@ -24,17 +24,17 @@ static int max(int a, int b)
     return (a > b) ? a : b;
 }
 
-// Renamed update_height to mettre_a_jour_hauteur
+
 static void mettre_a_jour_hauteur(NoeudAVL *noeud)
 {
-    // Use the renamed avl_hauteur function and struct members
+   
     noeud->hauteur = 1 + max(avl_hauteur(noeud->gauche), avl_hauteur(noeud->droite));
 }
 
-// Renamed avl_create_node to avl_creer_noeud
+
 NoeudAVL *avl_creer_noeud(const char *cle, void *donnee)
 {
-    // Use the renamed struct type
+    
     NoeudAVL *noeud = malloc(sizeof(NoeudAVL));
     if (noeud == NULL)
         return NULL;
@@ -51,7 +51,6 @@ NoeudAVL *avl_creer_noeud(const char *cle, void *donnee)
     return noeud;
 }
 
-// Renamed rotate_right to rotation_droite
 static NoeudAVL *rotation_droite(NoeudAVL *y)
 {
     NoeudAVL *x = y->gauche;
@@ -64,7 +63,6 @@ static NoeudAVL *rotation_droite(NoeudAVL *y)
     return x;
 }
 
-// Renamed rotate_left to rotation_gauche
 static NoeudAVL *rotation_gauche(NoeudAVL *x)
 {
     NoeudAVL *y = x->droite;
@@ -77,7 +75,7 @@ static NoeudAVL *rotation_gauche(NoeudAVL *x)
     return y;
 }
 
-// Renamed avl_insert to avl_inserer
+
 NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL **trouve)
 {
     if (racine == NULL)
@@ -89,16 +87,16 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
         return noeud;
     }
 
-    // Use the renamed struct member
+    
     int cmp = strcmp(cle, racine->cle);
     if (cmp < 0)
     {
-        // Use the renamed struct member and avl_inserer function
+      
         racine->gauche = avl_inserer(racine->gauche, cle, donnee, trouve);
     }
     else if (cmp > 0)
     {
-        // Use the renamed struct member and avl_inserer function
+        /
         racine->droite = avl_inserer(racine->droite, cle, donnee, trouve);
     }
     else
@@ -108,19 +106,19 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
         return racine;
     }
 
-    // Use the renamed update and balance functions
+    
     mettre_a_jour_hauteur(racine);
     int balance = avl_equilibre(racine);
 
-    // LL Case
+   
     if (balance > 1 && strcmp(cle, racine->gauche->cle) < 0)
         return rotation_droite(racine);
 
-    // RR Case
+   
     if (balance < -1 && strcmp(cle, racine->droite->cle) > 0)
         return rotation_gauche(racine);
 
-    // LR Case
+    /
     if (balance > 1 && strcmp(cle, racine->gauche->cle) > 0)
     {
         // Use the renamed struct member and rotation functions
@@ -128,7 +126,7 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
         return rotation_droite(racine);
     }
 
-    // RL Case
+    
     if (balance < -1 && strcmp(cle, racine->droite->cle) < 0)
     {
         // Use the renamed struct member and rotation functions
@@ -139,7 +137,7 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
     return racine;
 }
 
-// Renamed avl_search to avl_rechercher
+
 NoeudAVL *avl_rechercher(NoeudAVL *racine, const char *cle)
 {
     if (racine == NULL)
@@ -154,7 +152,7 @@ NoeudAVL *avl_rechercher(NoeudAVL *racine, const char *cle)
     return racine;
 }
 
-// Renamed avl_traverse_reverse to avl_parcourir_inverse
+
 void avl_parcourir_inverse(NoeudAVL *racine, void (*rappel)(NoeudAVL *, void *), void *arg)
 {
     if (racine == NULL)
@@ -166,7 +164,7 @@ void avl_parcourir_inverse(NoeudAVL *racine, void (*rappel)(NoeudAVL *, void *),
     avl_parcourir_inverse(racine->gauche, rappel, arg);
 }
 
-// Renamed avl_free to avl_liberer
+
 void avl_liberer(NoeudAVL *racine, void (*liberer_donnee)(void *))
 {
     if (racine == NULL)
@@ -180,7 +178,7 @@ void avl_liberer(NoeudAVL *racine, void (*liberer_donnee)(void *))
     free(racine);
 }
 
-// Renamed avl_count to avl_compter
+
 int avl_compter(NoeudAVL *racine)
 {
     if (racine == NULL)
