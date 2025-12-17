@@ -16,7 +16,7 @@ static int avl_equilibre(NoeudAVL *noeud)
     if (noeud == NULL)
         return 0;
     
-    return avl_hauteur(noeud->gauche) - avl_hauteur(noeud->droite);
+    return noeud->gauche->hauteur - noeud->droite->hauteur
 }
 
 static int max(int a, int b)
