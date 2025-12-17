@@ -3,132 +3,156 @@
 #include <stdlib.h>
 #include <string.h>
 
-static TreeNode *create_tree_node(const char *id, double leak_pct)
+/
+static NoeudArbre *creer_noeud_arbre(const char *identifiant, double pourcentage_fuite)
 {
-    TreeNode *node = malloc(sizeof(TreeNode));
-    if (node == NULL)
+    
+    NoeudArbre *noeud = malloc(sizeof(NoeudArbre));
+    if (noeud == NULL)
         return NULL;
-    node->id = strdup(id);
-    if (node->id == NULL)
+
+    noeud->identifiant = strdup(identifiant);
+    if (noeud->identifiant == NULL)
     {
-        free(node);
+        free(noeud);
         return NULL;
     }
-    node->leak_pct = leak_pct;
-    node->child_count = 0;
-    node->children = NULL;
-    return node;
+    noeud->pourcentage_fuite = pourcentage_fuite;
+    noeud->compte_enfants = 0;
+    noeud->enfants = NULL;
+    return noeud;
 }
 
-static void add_child(TreeNode *parent, TreeNode *child)
+
+static void ajouter_enfant(NoeudArbre *parent, NoeudArbre *enfant)
 {
-    ChildNode *cn = malloc(sizeof(ChildNode));
-    if (cn == NULL)
+    // Utilisation du type renommé
+    MaillonEnfant *maillon = malloc(sizeof(MaillonEnfant));
+    if (maillon == NULL)
         return;
-    cn->child = child;
-    cn->next = parent->children;
-    parent->children = cn;
-    parent->child_count++;
+
+    maillon->enfant = enfant;
+    // Ajout en tête de liste
+    maillon->suivant = parent->enfants;
+    parent->enfants = maillon;
+    parent->compte_enfants++;
 }
 
-static void free_tree(TreeNode *node)
+
+static void liberer_arbre(NoeudArbre *noeud)
 {
-    if (node == NULL)
+    if (noeud == NULL)
         return;
-    ChildNode *cn = node->children;
-    while (cn)
+
+    MaillonEnfant *maillon = noeud->enfants;
+    while (maillon)
     {
-        ChildNode *next = cn->next;
-        free_tree(cn->child);
-        free(cn);
-        cn = next;
+        MaillonEnfant *suivant = maillon->suivant;
+        // Libération récursive de l'enfant
+        liberer_arbre(maillon->enfant);
+        // Libération du maillon de la liste
+        free(maillon);
+        maillon = suivant;
     }
-    free(node->id);
-    free(node);
+    // Libération de l'identifiant et du noeud
+    free(noeud->identifiant);
+    free(noeud);
 }
 
-static double calculate_leaks_recursive(TreeNode *node, double incoming_volume)
+
+static double calculer_fuites_recursif(NoeudArbre *noeud, double volume_entrant)
 {
-    if (node == NULL || incoming_volume <= 0)
+    if (noeud == NULL || volume_entrant <= 0)
         return 0.0;
 
-    double leak = incoming_volume * (node->leak_pct / 100.0);
-    double remaining = incoming_volume - leak;
+    // Calcul de la fuite au niveau de ce noeud
+    double fuite = volume_entrant * (noeud->pourcentage_fuite / 100.0);
+    double restant = volume_entrant - fuite;
 
-    if (node->child_count == 0)
+    // Si c'est une feuille, le volume restant est perdu 
+    // Ici, on considère que seuls les fuites sont tracées, le reste est distribué aux enfants
+    if (noeud->compte_enfants == 0)
     {
-        return leak;
+        return fuite;
     }
 
-    double volume_per_child = remaining / node->child_count;
-    double total_leak = leak;
+    // Répartition du volume restant également entre les enfants
+    double volume_par_enfant = restant / noeud->compte_enfants;
+    double fuite_totale = fuite;
 
-    ChildNode *cn = node->children;
-    while (cn)
+    // Appel récursif pour chaque enfant
+    MaillonEnfant *maillon = noeud->enfants;
+    while (maillon)
     {
-        total_leak += calculate_leaks_recursive(cn->child, volume_per_child);
-        cn = cn->next;
+        fuite_totale += calculer_fuites_recursif(maillon->enfant, volume_par_enfant);
+        maillon = maillon->suivant;
     }
 
-    return total_leak;
+    return fuite_totale;
 }
 
-int leaks_process(const char *input_file, const char *output_file, const char *plant_id)
+
+int fuites_traiter(const char *fichier_entree, const char *fichier_sortie, const char *id_usine)
 {
-    FILE *fp = fopen(input_file, "r");
+    FILE *fp = fopen(fichier_entree, "r");
     if (fp == NULL)
     {
-        fprintf(stderr, "Error: Cannot open input file %s\n", input_file);
+        fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier d'entrée %s\n", fichier_entree);
         return 1;
     }
 
-    AVLNode *node_index = NULL;
-    TreeNode *plant_root = NULL;
-    double plant_max_volume = 0.0;
-    int plant_found = 0;
+    // AVL pour indexer les NoeudArbre par ID (clé = ID, donnée = pointeur NoeudArbre)
+    NoeudAVL *index_noeuds = NULL;
+    // Racine de l'arbre de fuites (l'usine principale)
+    NoeudArbre *racine_usine = NULL;
+    double volume_max_usine = 0.0;
+    int usine_trouvee = 0;
 
-    char line[1024];
-    char **lines = NULL;
-    int line_count = 0;
-    int line_capacity = 10000;
+    char ligne[1024];
+    char **lignes = NULL; // Pour stocker toutes les lignes en mémoire
+    int compte_lignes = 0;
+    int capacite_lignes = 10000;
 
-    lines = malloc(sizeof(char *) * line_capacity);
-    if (lines == NULL)
+    lignes = malloc(sizeof(char *) * capacite_lignes);
+    if (lignes == NULL)
     {
         fclose(fp);
         return 1;
     }
 
-    while (fgets(line, sizeof(line), fp))
+    // Phase 1: Lire toutes les lignes du fichier en mémoire 
+    while (fgets(ligne, sizeof(ligne), fp))
     {
-        if (line_count >= line_capacity)
+        if (compte_lignes >= capacite_lignes)
         {
-            line_capacity *= 2;
-            char **new_lines = realloc(lines, sizeof(char *) * line_capacity);
-            if (new_lines == NULL)
+            capacite_lignes *= 2;
+            char **nouvelles_lignes = realloc(lignes, sizeof(char *) * capacite_lignes);
+            if (nouvelles_lignes == NULL)
             {
-                for (int i = 0; i < line_count; i++)
-                    free(lines[i]);
-                free(lines);
+                for (int i = 0; i < compte_lignes; i++)
+                    free(lignes[i]);
+                free(lignes);
                 fclose(fp);
                 return 1;
             }
-            lines = new_lines;
+            lignes = nouvelles_lignes;
         }
-        lines[line_count] = strdup(line);
-        line_count++;
+        lignes[compte_lignes] = strdup(ligne);
+        compte_lignes++;
     }
     fclose(fp);
 
-    for (int i = 0; i < line_count; i++)
+    // Phase 2: Trouver le volume max de l'usine racine 
+    for (int i = 0; i < compte_lignes; i++)
     {
-        char *l = lines[i];
+        char *l = lignes[i];
         l[strcspn(l, "\n\r")] = 0;
 
         char col1[256] = "-", col2[256] = "-", col3[256] = "-", col4[256] = "-", col5[256] = "-";
-        char *lcopy = strdup(l);
+        char *copie_l = strdup(l);
 
-        char *token = strtok(lcopy, ";");
+        
+        char *token = strtok(copie_l, ";");
         if (token)
             strncpy(col1, token, sizeof(col1) - 1);
         token = strtok(NULL, ";");
@@ -144,62 +168,65 @@ int leaks_process(const char *input_file, const char *output_file, const char *p
         if (token)
             strncpy(col5, token, sizeof(col5) - 1);
 
-        free(lcopy);
+        free(copie_l);
 
-        if (strcmp(col1, "-") == 0 && strcmp(col2, plant_id) == 0 && strcmp(col3, "-") == 0 && strcmp(col4, "-") != 0)
+        // Ligne de définition du volume max de l'usine : 
+        if (strcmp(col1, "-") == 0 && strcmp(col2, id_usine) == 0 && strcmp(col3, "-") == 0 && strcmp(col4, "-") != 0)
         {
-            plant_max_volume = atof(col4);
-            plant_found = 1;
+            volume_max_usine = atof(col4);
+            usine_trouvee = 1;
         }
     }
 
-    if (!plant_found)
+    // Si l'usine racine n'est pas trouvée, écrire -1 et quitter
+    if (!usine_trouvee)
     {
-        for (int i = 0; i < line_count; i++)
-            free(lines[i]);
-        free(lines);
+        for (int i = 0; i < compte_lignes; i++)
+            free(lignes[i]);
+        free(lignes);
 
-        FILE *out = fopen(output_file, "a");
-        if (out == NULL)
-        {
-            fprintf(stderr, "Error: Cannot open output file %s\n", output_file);
-            return 1;
-        }
-
+        FILE *out = fopen(fichier_sortie, "a");
+        /
+        if (out == NULL) { /* handle error */ return 1; }
         fseek(out, 0, SEEK_END);
         long pos = ftell(out);
         if (pos == 0)
         {
-            fprintf(out, "identifier;Leak volume (M.m3.year-1)\n");
+            fprintf(out, "identifiant;Volume de fuite (M.m3.an-1)\n");
         }
-        fprintf(out, "%s;-1\n", plant_id);
+        fprintf(out, "%s;-1\n", id_usine);
         fclose(out);
         return 0;
     }
 
-    plant_root = create_tree_node(plant_id, 0.0);
-    if (plant_root == NULL)
+    // Initialiser la racine de l'arbre de fuites
+    racine_usine = creer_noeud_arbre(id_usine, 0.0);
+    if (racine_usine == NULL)
     {
-        for (int i = 0; i < line_count; i++)
-            free(lines[i]);
-        free(lines);
+        for (int i = 0; i < compte_lignes; i++)
+            free(lignes[i]);
+        free(lignes);
         return 1;
     }
 
-    AVLNode *found = NULL;
-    node_index = avl_insert(node_index, plant_id, plant_root, &found);
+    // Indexer la racine dans l'AVL
+    NoeudAVL *trouve = NULL;
+    index_noeuds = avl_inserer(index_noeuds, id_usine, racine_usine, &trouve);
 
-    int changes = 1;
-    while (changes)
+    /Phase 3: Construction itérative de l'arbre de fuites 
+    
+    int changements = 1;
+    while (changements)
     {
-        changes = 0;
-        for (int i = 0; i < line_count; i++)
+        changements = 0;
+        for (int i = 0; i < compte_lignes; i++)
         {
-            char *l = lines[i];
+            char *l = lignes[i];
+            // ... (Parsing des colonnes col1 à col5, identique à Phase 2)
             char col1[256] = "-", col2[256] = "-", col3[256] = "-", col4[256] = "-", col5[256] = "-";
-            char *lcopy = strdup(l);
+            char *copie_l = strdup(l);
 
-            char *token = strtok(lcopy, ";");
+            char *token = strtok(copie_l, ";");
             if (token)
                 strncpy(col1, token, sizeof(col1) - 1);
             token = strtok(NULL, ";");
@@ -215,62 +242,76 @@ int leaks_process(const char *input_file, const char *output_file, const char *p
             if (token)
                 strncpy(col5, token, sizeof(col5) - 1);
 
-            free(lcopy);
-
+            free(copie_l);
+            // Si la colonne 3 (destinataire) est vide, on ignore
             if (strcmp(col3, "-") == 0)
                 continue;
 
-            int is_plant_segment = (strcmp(col1, plant_id) == 0);
-            int is_plant_to_storage = (strcmp(col1, "-") == 0 && strcmp(col2, plant_id) == 0);
+            // Une ligne représente un segment PlantSegment (PlantID -> ID_PLANT/Source)
+            int est_segment_usine = (strcmp(col1, id_usine) == 0);
+            // OU un segment de stockage (Source -> PlantID)
+            int est_usine_vers_stockage = (strcmp(col1, "-") == 0 && strcmp(col2, id_usine) == 0);
 
-            if (!is_plant_segment && !is_plant_to_storage)
+            if (!est_segment_usine && !est_usine_vers_stockage)
                 continue;
 
-            AVLNode *parent_node = avl_search(node_index, col2);
-            if (parent_node == NULL)
+            // 1. Chercher le noeud parent (col2) dans l'index AVL
+            AVLNode *noeud_parent_avl = avl_rechercher(index_noeuds, col2);
+            if (noeud_parent_avl == NULL)
+                continue; // Le parent n'est pas encore dans l'arbre
+
+            // 2. Vérifier si le noeud enfant (col3) existe déjà
+            AVLNode *noeud_enfant_avl = avl_rechercher(index_noeuds, col3);
+            if (noeud_enfant_avl != NULL)
+                continue; // L'enfant est déjà connecté
+
+            // 3. Créer et connecter l'enfant
+            double pourcentage_fuite = (strcmp(col5, "-") != 0) ? atof(col5) : 0.0;
+            NoeudArbre *enfant = creer_noeud_arbre(col3, pourcentage_fuite);
+            if (enfant == NULL)
                 continue;
 
-            AVLNode *child_node = avl_search(node_index, col3);
-            if (child_node != NULL)
-                continue;
+            NoeudArbre *parent = (NoeudArbre *)noeud_parent_avl->donnee;
+            ajouter_enfant(parent, enfant); // Ajouter au noeud parent réel
 
-            double leak_pct = (strcmp(col5, "-") != 0) ? atof(col5) : 0.0;
-            TreeNode *child = create_tree_node(col3, leak_pct);
-            if (child == NULL)
-                continue;
-
-            TreeNode *parent = (TreeNode *)parent_node->data;
-            add_child(parent, child);
-
-            node_index = avl_insert(node_index, col3, child, NULL);
-            changes = 1;
+            // 4. Indexer l'enfant pour les prochaines itérations
+            index_noeuds = avl_inserer(index_noeuds, col3, enfant, NULL);
+            changements = 1; // Un noeud a été ajouté, il faut relancer la boucle
         }
     }
 
-    double total_leaks = 0.0;
+    // --- Phase 4: Calcul des fuites ---
+    double fuites_totales = 0.0;
 
-    if (plant_root->child_count > 0)
+    if (racine_usine->compte_enfants > 0)
     {
-        double volume_per_child = plant_max_volume / plant_root->child_count;
-        ChildNode *cn = plant_root->children;
-        while (cn)
+        // Répartition initiale du volume max sur les premiers enfants
+        double volume_par_enfant = volume_max_usine / racine_usine->compte_enfants;
+        MaillonEnfant *maillon = racine_usine->enfants;
+        while (maillon)
         {
-            total_leaks += calculate_leaks_recursive(cn->child, volume_per_child);
-            cn = cn->next;
+            // La racine n'a pas de fuite propre dans ce modèle, on commence la récursion sur les enfants
+            fuites_totales += calculer_fuites_recursif(maillon->enfant, volume_par_enfant);
+            maillon = maillon->suivant;
         }
     }
 
-    double total_leaks_mm3 = total_leaks / 1000000.0;
+    // Conversion en millions de m³
+    double fuites_totales_mm3 = fuites_totales / 1000000.0;
 
-    FILE *out = fopen(output_file, "a");
+    // --- Phase 5: Écriture du résultat et nettoyage ---
+
+    FILE *out = fopen(fichier_sortie, "a");
+    // ... (gestion des erreurs et écriture du résultat)
     if (out == NULL)
     {
-        fprintf(stderr, "Error: Cannot open output file %s\n", output_file);
-        free_tree(plant_root);
-        avl_free(node_index, NULL);
-        for (int i = 0; i < line_count; i++)
-            free(lines[i]);
-        free(lines);
+        fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier de sortie %s\n", fichier_sortie);
+        liberer_arbre(racine_usine);
+        // L'AVL n'indexait que des pointeurs, pas besoin de fonction de libération des données (NULL)
+        avl_liberer(index_noeuds, NULL);
+        for (int i = 0; i < compte_lignes; i++)
+            free(lignes[i]);
+        free(lignes);
         return 1;
     }
 
@@ -278,16 +319,17 @@ int leaks_process(const char *input_file, const char *output_file, const char *p
     long pos = ftell(out);
     if (pos == 0)
     {
-        fprintf(out, "identifier;Leak volume (M.m3.year-1)\n");
+        fprintf(out, "identifiant;Volume de fuite (M.m3.an-1)\n");
     }
-    fprintf(out, "%s;%.6f\n", plant_id, total_leaks_mm3);
+    fprintf(out, "%s;%.6f\n", id_usine, fuites_totales_mm3);
     fclose(out);
 
-    free_tree(plant_root);
-    avl_free(node_index, NULL);
-    for (int i = 0; i < line_count; i++)
-        free(lines[i]);
-    free(lines);
+    // Nettoyage final
+    liberer_arbre(racine_usine);
+    avl_liberer(index_noeuds, NULL);
+    for (int i = 0; i < compte_lignes; i++)
+        free(lignes[i]);
+    free(lignes);
 
     return 0;
 }
