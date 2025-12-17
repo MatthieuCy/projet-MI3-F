@@ -5,19 +5,19 @@
 
 typedef struct AVLNode
 {
-    char *key;
-    void *data;
-    int height;
-    struct AVLNode *left;
-    struct AVLNode *right;
-} AVLNode;
+    char *cle; // key
+    void *donnee; // data
+    int hauteur; // height
+    struct AVLNode *gauche; // left
+    struct AVLNode *droite; // right
+} NoeudAVL; // Renamed struct type
 
-AVLNode *avl_create_node(const char *key, void *data);
-AVLNode *avl_insert(AVLNode *root, const char *key, void *data, AVLNode **found);
-AVLNode *avl_search(AVLNode *root, const char *key);
-void avl_traverse_reverse(AVLNode *root, void (*callback)(AVLNode *, void *), void *arg);
-void avl_free(AVLNode *root, void (*free_data)(void *));
-int avl_height(AVLNode *node);
-int avl_count(AVLNode *root);
+NoeudAVL *avl_creer_noeud(const char *cle, void *donnee);
+NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL **trouve);
+NoeudAVL *avl_rechercher(NoeudAVL *racine, const char *cle);
+void avl_parcourir_inverse(NoeudAVL *racine, void (*rappel)(NoeudAVL *, void *), void *arg);
+void avl_liberer(NoeudAVL *racine, void (*liberer_donnee)(void *));
+int avl_hauteur(NoeudAVL *noeud);
+int avl_compter(NoeudAVL *racine);
 
-#endif
+#endif // AVL_H
