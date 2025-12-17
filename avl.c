@@ -1,20 +1,22 @@
-
 #include "avl.h"
 #include <string.h>
 #include <stdio.h>
 
-int avl_height(AVLNode *node)
+// Renamed avl_height to avl_hauteur
+int avl_hauteur(NoeudAVL *noeud)
 {
-    if (node == NULL)
+    if (noeud == NULL)
         return 0;
-    return node->height;
+    return noeud->hauteur; // Use the renamed struct member
 }
 
-static int avl_balance(AVLNode *node)
+// Renamed avl_balance to avl_equilibre
+static int avl_equilibre(NoeudAVL *noeud)
 {
-    if (node == NULL)
+    if (noeud == NULL)
         return 0;
-    return avl_height(node->left) - avl_height(node->right);
+    // Use the renamed avl_hauteur function and struct members
+    return avl_hauteur(noeud->gauche) - avl_hauteur(noeud->droite);
 }
 
 static int max(int a, int b)
@@ -22,137 +24,167 @@ static int max(int a, int b)
     return (a > b) ? a : b;
 }
 
-static void update_height(AVLNode *node)
+// Renamed update_height to mettre_a_jour_hauteur
+static void mettre_a_jour_hauteur(NoeudAVL *noeud)
 {
-    node->height = 1 + max(avl_height(node->left), avl_height(node->right));
+    // Use the renamed avl_hauteur function and struct members
+    noeud->hauteur = 1 + max(avl_hauteur(noeud->gauche), avl_hauteur(noeud->droite));
 }
 
-AVLNode *avl_create_node(const char *key, void *data)
+// Renamed avl_create_node to avl_creer_noeud
+NoeudAVL *avl_creer_noeud(const char *cle, void *donnee)
 {
-    AVLNode *node = malloc(sizeof(AVLNode));
-    if (node == NULL)
+    // Use the renamed struct type
+    NoeudAVL *noeud = malloc(sizeof(NoeudAVL));
+    if (noeud == NULL)
         return NULL;
-    node->key = strdup(key);
-    if (node->key == NULL)
+    noeud->cle = strdup(cle);
+    if (noeud->cle == NULL)
     {
-        free(node);
+        free(noeud);
         return NULL;
     }
-    node->data = data;
-    node->height = 1;
-    node->left = NULL;
-    node->right = NULL;
-    return node;
+    noeud->donnee = donnee;
+    noeud->hauteur = 1;
+    noeud->gauche = NULL;
+    noeud->droite = NULL;
+    return noeud;
 }
 
-static AVLNode *rotate_right(AVLNode *y)
+// Renamed rotate_right to rotation_droite
+static NoeudAVL *rotation_droite(NoeudAVL *y)
 {
-    AVLNode *x = y->left;
-    AVLNode *T2 = x->right;
-    x->right = y;
-    y->left = T2;
-    update_height(y);
-    update_height(x);
+    NoeudAVL *x = y->gauche;
+    NoeudAVL *T2 = x->droite;
+    x->droite = y;
+    y->gauche = T2;
+    // Use the renamed update function
+    mettre_a_jour_hauteur(y);
+    mettre_a_jour_hauteur(x);
     return x;
 }
 
-static AVLNode *rotate_left(AVLNode *x)
+// Renamed rotate_left to rotation_gauche
+static NoeudAVL *rotation_gauche(NoeudAVL *x)
 {
-    AVLNode *y = x->right;
-    AVLNode *T2 = y->left;
-    y->left = x;
-    x->right = T2;
-    update_height(x);
-    update_height(y);
+    NoeudAVL *y = x->droite;
+    NoeudAVL *T2 = y->gauche;
+    y->gauche = x;
+    x->droite = T2;
+    // Use the renamed update function
+    mettre_a_jour_hauteur(x);
+    mettre_a_jour_hauteur(y);
     return y;
 }
 
-AVLNode *avl_insert(AVLNode *root, const char *key, void *data, AVLNode **found)
+// Renamed avl_insert to avl_inserer
+NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL **trouve)
 {
-    if (root == NULL)
+    if (racine == NULL)
     {
-        AVLNode *node = avl_create_node(key, data);
-        if (found)
-            *found = node;
-        return node;
+        // Use the renamed avl_creer_noeud function and struct type
+        NoeudAVL *noeud = avl_creer_noeud(cle, donnee);
+        if (trouve)
+            *trouve = noeud;
+        return noeud;
     }
 
-    int cmp = strcmp(key, root->key);
+    // Use the renamed struct member
+    int cmp = strcmp(cle, racine->cle);
     if (cmp < 0)
     {
-        root->left = avl_insert(root->left, key, data, found);
+        // Use the renamed struct member and avl_inserer function
+        racine->gauche = avl_inserer(racine->gauche, cle, donnee, trouve);
     }
     else if (cmp > 0)
     {
-        root->right = avl_insert(root->right, key, data, found);
+        // Use the renamed struct member and avl_inserer function
+        racine->droite = avl_inserer(racine->droite, cle, donnee, trouve);
     }
     else
     {
-        if (found)
-            *found = root;
-        return root;
+        if (trouve)
+            *trouve = racine;
+        return racine;
     }
 
-    update_height(root);
-    int balance = avl_balance(root);
+    // Use the renamed update and balance functions
+    mettre_a_jour_hauteur(racine);
+    int balance = avl_equilibre(racine);
 
-    if (balance > 1 && strcmp(key, root->left->key) < 0)
-        return rotate_right(root);
+    // LL Case
+    if (balance > 1 && strcmp(cle, racine->gauche->cle) < 0)
+        return rotation_droite(racine);
 
-    if (balance < -1 && strcmp(key, root->right->key) > 0)
-        return rotate_left(root);
+    // RR Case
+    if (balance < -1 && strcmp(cle, racine->droite->cle) > 0)
+        return rotation_gauche(racine);
 
-    if (balance > 1 && strcmp(key, root->left->key) > 0)
+    // LR Case
+    if (balance > 1 && strcmp(cle, racine->gauche->cle) > 0)
     {
-        root->left = rotate_left(root->left);
-        return rotate_right(root);
+        // Use the renamed struct member and rotation functions
+        racine->gauche = rotation_gauche(racine->gauche);
+        return rotation_droite(racine);
     }
 
-    if (balance < -1 && strcmp(key, root->right->key) < 0)
+    // RL Case
+    if (balance < -1 && strcmp(cle, racine->droite->cle) < 0)
     {
-        root->right = rotate_right(root->right);
-        return rotate_left(root);
+        // Use the renamed struct member and rotation functions
+        racine->droite = rotation_droite(racine->droite);
+        return rotation_gauche(racine);
     }
 
-    return root;
+    return racine;
 }
 
-AVLNode *avl_search(AVLNode *root, const char *key)
+// Renamed avl_search to avl_rechercher
+NoeudAVL *avl_rechercher(NoeudAVL *racine, const char *cle)
 {
-    if (root == NULL)
+    if (racine == NULL)
         return NULL;
-    int cmp = strcmp(key, root->key);
+    int cmp = strcmp(cle, racine->cle);
     if (cmp < 0)
-        return avl_search(root->left, key);
+        // Use the renamed struct member and avl_rechercher function
+        return avl_rechercher(racine->gauche, cle);
     if (cmp > 0)
-        return avl_search(root->right, key);
-    return root;
+        // Use the renamed struct member and avl_rechercher function
+        return avl_rechercher(racine->droite, cle);
+    return racine;
 }
 
-void avl_traverse_reverse(AVLNode *root, void (*callback)(AVLNode *, void *), void *arg)
+// Renamed avl_traverse_reverse to avl_parcourir_inverse
+void avl_parcourir_inverse(NoeudAVL *racine, void (*rappel)(NoeudAVL *, void *), void *arg)
 {
-    if (root == NULL)
+    if (racine == NULL)
         return;
-    avl_traverse_reverse(root->right, callback, arg);
-    callback(root, arg);
-    avl_traverse_reverse(root->left, callback, arg);
+    // Use the renamed struct member and avl_parcourir_inverse function
+    avl_parcourir_inverse(racine->droite, rappel, arg);
+    rappel(racine, arg);
+    // Use the renamed struct member and avl_parcourir_inverse function
+    avl_parcourir_inverse(racine->gauche, rappel, arg);
 }
 
-void avl_free(AVLNode *root, void (*free_data)(void *))
+// Renamed avl_free to avl_liberer
+void avl_liberer(NoeudAVL *racine, void (*liberer_donnee)(void *))
 {
-    if (root == NULL)
+    if (racine == NULL)
         return;
-    avl_free(root->left, free_data);
-    avl_free(root->right, free_data);
-    free(root->key);
-    if (free_data && root->data)
-        free_data(root->data);
-    free(root);
+    // Use the renamed struct member and avl_liberer function
+    avl_liberer(racine->gauche, liberer_donnee);
+    avl_liberer(racine->droite, liberer_donnee);
+    free(racine->cle);
+    if (liberer_donnee && racine->donnee)
+        liberer_donnee(racine->donnee);
+    free(racine);
 }
 
-int avl_count(AVLNode *root)
+// Renamed avl_count to avl_compter
+int avl_compter(NoeudAVL *racine)
 {
-    if (root == NULL)
+    if (racine == NULL)
         return 0;
-    return 1 + avl_count(root->left) + avl_count(root->right);
+    // Use the renamed struct member and avl_compter function
+    return 1 + avl_compter(racine->gauche) + avl_compter(racine->droite);
 }
