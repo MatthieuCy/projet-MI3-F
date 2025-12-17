@@ -3,14 +3,14 @@
 
 #include <stdlib.h>
 
-typedef struct AVLNode
+typedef struct NoeudAVL
 {
-    char *cle; // key
-    void *donnee; // data
-    int hauteur; // height
-    struct AVLNode *gauche; // left
-    struct AVLNode *droite; // right
-} NoeudAVL; // Renamed struct type
+    char *cle; 
+    void *donnee; 
+    int hauteur; 
+    struct NoeudAVL *gauche; 
+    struct NoeudAVL *droite; 
+} NoeudAVL; 
 
 NoeudAVL *avl_creer_noeud(const char *cle, void *donnee);
 NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL **trouve);
