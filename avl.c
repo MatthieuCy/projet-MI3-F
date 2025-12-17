@@ -107,7 +107,7 @@ NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL 
     }
 
     
-    mettre_a_jour_hauteur(racine);
+   NoeudAVL * mettre_a_jour_hauteur(racine){
     int balance = avl_equilibre(racine);
 
    
