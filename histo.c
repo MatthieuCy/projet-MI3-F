@@ -3,81 +3,94 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void free_plant_data(void *data)
+
+static void liberer_donnees_usine(void *donnee)
 {
-    if (data)
+    if (donnee)
     {
-        PlantData *pd = (PlantData *)data;
-        free(pd->id);
-        free(pd);
+        /
+        DonneesUsine *du = (DonneesUsine *)donnee;
+        free(du->identifiant);
+        free(du);
     }
 }
 
-static int is_source(const char *id)
+
+static int est_source(const char *identifiant)
 {
-    return (strstr(id, "Source") != NULL ||
-            strstr(id, "Well") != NULL ||
-            strstr(id, "Spring") != NULL ||
-            strstr(id, "Fountain") != NULL ||
-            strstr(id, "Resurgence") != NULL ||
-            strstr(id, "field") != NULL);
+    return (strstr(identifiant, "Source") != NULL ||
+            strstr(identifiant, "Well") != NULL ||
+            strstr(identifiant, "Spring") != NULL ||
+            strstr(identifiant, "Fountain") != NULL ||
+            strstr(identifiant, "Resurgence") != NULL ||
+            strstr(identifiant, "field") != NULL);
 }
 
-static int is_plant(const char *id)
+
+static int est_usine(const char *identifiant)
 {
-    return (strstr(id, "Plant") != NULL ||
-            strstr(id, "Unit") != NULL ||
-            strstr(id, "Module") != NULL ||
-            strstr(id, "Facility") != NULL);
+    return (strstr(identifiant, "Plant") != NULL ||
+            strstr(identifiant, "Unit") != NULL ||
+            strstr(identifiant, "Module") != NULL ||
+            strstr(identifiant, "Facility") != NULL);
 }
+
 
 typedef struct
 {
-    FILE *fp;
+    FILE *descripteur_fichier; // fp
     const char *mode;
-} WriteContext;
+} ContexteEcriture;
 
-static void write_plant(AVLNode *node, void *arg)
+static void ecrire_usine(NoeudAVL *noeud, void *arg)
 {
-    WriteContext *ctx = (WriteContext *)arg;
-    PlantData *pd = (PlantData *)node->data;
-    double value = 0.0;
+    /
+    ContexteEcriture *ctx = (ContexteEcriture *)arg;
+    DonneesUsine *du = (DonneesUsine *)noeud->donnee;
+    double valeur = 0.0;
 
     if (strcmp(ctx->mode, "max") == 0)
     {
-        value = pd->max_volume / 1000.0;
+        valeur = du->volume_max / 1000.0;
     }
     else if (strcmp(ctx->mode, "src") == 0)
     {
-        value = pd->source_volume / 1000.0;
+        valeur = du->volume_source / 1000.0;
     }
     else if (strcmp(ctx->mode, "real") == 0)
     {
-        value = pd->real_volume / 1000.0;
+        valeur = du->volume_reel / 1000.0;
     }
 
-    fprintf(ctx->fp, "%s;%.6f\n", pd->id, value);
+    
+    fprintf(ctx->descripteur_fichier, "%s;%.6f\n", du->identifiant, valeur);
 }
 
-int histo_process(const char *input_file, const char *output_file, const char *mode)
+
+int histo_traiter(const char *fichier_entree, const char *fichier_sortie, const char *mode)
 {
-    FILE *fp = fopen(input_file, "r");
+    FILE *fp = fopen(fichier_entree, "r");
     if (fp == NULL)
     {
-        fprintf(stderr, "Error: Cannot open input file %s\n", input_file);
+        fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier d'entrée %s\n", fichier_entree);
         return 1;
     }
 
-    AVLNode *plants = NULL;
-    char line[1024];
+    
+    NoeudAVL *usines = NULL; 
+    char ligne[1024];        
 
-    while (fgets(line, sizeof(line), fp))
+    // Boucle de lecture du fichier d'entrée
+    while (fgets(ligne, sizeof(ligne), fp))
     {
-        line[strcspn(line, "\n\r")] = 0;
+        // Nettoyage de la fin de ligne
+        ligne[strcspn(ligne, "\n\r")] = 0;
 
+        // Variables pour stocker les colonnes lues (inchangées pour la simplicité du parsing)
         char col1[256] = "-", col2[256] = "-", col3[256] = "-", col4[256] = "-", col5[256] = "-";
 
-        char *token = strtok(line, ";");
+        // Parsing de la ligne
+        char *token = strtok(ligne, ";");
         if (token)
             strncpy(col1, token, sizeof(col1) - 1);
         token = strtok(NULL, ";");
@@ -93,93 +106,120 @@ int histo_process(const char *input_file, const char *output_file, const char *m
         if (token)
             strncpy(col5, token, sizeof(col5) - 1);
 
-        if (strcmp(col1, "-") == 0 && is_plant(col2) && strcmp(col3, "-") == 0 && strcmp(col4, "-") != 0)
+        // --- Cas 1: Ligne de volume maximum pour une usine (Plant) 
+        // Exemple de format: -;PlantName;-;VolumeMax;-
+        if (strcmp(col1, "-") == 0 && est_usine(col2) && strcmp(col3, "-") == 0 && strcmp(col4, "-") != 0)
         {
-            AVLNode *found = NULL;
-            plants = avl_insert(plants, col2, NULL, &found);
-            if (found && found->data == NULL)
+            NoeudAVL *trouve = NULL;
+            // Utilisation de la fonction avl_inserer
+            usines = avl_inserer(usines, col2, NULL, &trouve);
+            
+            // Si le noeud est nouveau ou si c'est le noeud existant
+            if (trouve)
             {
-                PlantData *pd = malloc(sizeof(PlantData));
-                if (pd == NULL)
+                if (trouve->donnee == NULL)
                 {
-                    fclose(fp);
-                    avl_free(plants, free_plant_data);
-                    return 1;
-                }
-                pd->id = strdup(col2);
-                pd->max_volume = atof(col4);
-                pd->source_volume = 0.0;
-                pd->real_volume = 0.0;
-                found->data = pd;
-            }
-            else if (found && found->data)
-            {
-                PlantData *pd = (PlantData *)found->data;
-                pd->max_volume = atof(col4);
-            }
-        }
-
-        if (strcmp(col1, "-") == 0 && is_source(col2) && is_plant(col3) && strcmp(col4, "-") != 0)
-        {
-            double volume = atof(col4);
-            double leak_pct = (strcmp(col5, "-") != 0) ? atof(col5) : 0.0;
-            double real = volume * (1.0 - leak_pct / 100.0);
-
-            AVLNode *found = NULL;
-            plants = avl_insert(plants, col3, NULL, &found);
-            if (found)
-            {
-                if (found->data == NULL)
-                {
-                    PlantData *pd = malloc(sizeof(PlantData));
-                    if (pd == NULL)
+                    // Création de la structure de données pour la nouvelle usine
+                    DonneesUsine *du = malloc(sizeof(DonneesUsine));
+                    if (du == NULL)
                     {
                         fclose(fp);
-                        avl_free(plants, free_plant_data);
+                        // Utilisation de la fonction avl_liberer et liberer_donnees_usine
+                        avl_liberer(usines, liberer_donnees_usine);
                         return 1;
                     }
-                    pd->id = strdup(col3);
-                    pd->max_volume = 0.0;
-                    pd->source_volume = volume;
-                    pd->real_volume = real;
-                    found->data = pd;
+                    du->identifiant = strdup(col2);
+                    du->volume_max = atof(col4);
+                    du->volume_source = 0.0;
+                    du->volume_reel = 0.0;
+                    trouve->donnee = du;
                 }
                 else
                 {
-                    PlantData *pd = (PlantData *)found->data;
-                    pd->source_volume += volume;
-                    pd->real_volume += real;
+                    // Mise à jour du volume max si l'usine existe déjà
+                    DonneesUsine *du = (DonneesUsine *)trouve->donnee;
+                    du->volume_max = atof(col4);
+                }
+            }
+        }
+
+        // --- Cas 2: Ligne d'approvisionnement (Source vers Plant)
+       
+        if (strcmp(col1, "-") == 0 && est_source(col2) && est_usine(col3) && strcmp(col4, "-") != 0)
+        {
+            double volume = atof(col4);
+            // Si la colonne 5 est présente, utiliser le pourcentage de fuite
+            double pourcentage_fuite = (strcmp(col5, "-") != 0) ? atof(col5) : 0.0;
+            // Calcul du volume réel (avec fuite)
+            double reel = volume * (1.0 - pourcentage_fuite / 100.0);
+
+            NoeudAVL *trouve = NULL;
+            // Insérer ou trouver l'usine destinataire
+            usines = avl_inserer(usines, col3, NULL, &trouve);
+
+            if (trouve)
+            {
+                if (trouve->donnee == NULL)
+                {
+                    // Création de la structure de données pour la nouvelle usine
+                    DonneesUsine *du = malloc(sizeof(DonneesUsine));
+                    if (du == NULL)
+                    {
+                        fclose(fp);
+                        avl_liberer(usines, liberer_donnees_usine);
+                        return 1;
+                    }
+                    du->identifiant = strdup(col3);
+                    du->volume_max = 0.0;
+                    du->volume_source = volume;
+                    du->volume_reel = reel;
+                    trouve->donnee = du;
+                }
+                else
+                {
+                    // Mise à jour : ajout du nouveau volume à la source et au volume réel existant
+                    DonneesUsine *du = (DonneesUsine *)trouve->donnee;
+                    du->volume_source += volume;
+                    du->volume_reel += reel;
                 }
             }
         }
     }
+    
     fclose(fp);
 
-    FILE *out = fopen(output_file, "w");
+    // Ouverture du fichier de sortie
+    FILE *out = fopen(fichier_sortie, "w");
     if (out == NULL)
     {
-        fprintf(stderr, "Error: Cannot open output file %s\n", output_file);
-        avl_free(plants, free_plant_data);
+        fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier de sortie %s\n", fichier_sortie);
+        // Libérer la mémoire en cas d'erreur
+        avl_liberer(usines, liberer_donnees_usine);
         return 1;
     }
 
+    // Écrire l'en-tête en fonction du mode demandé
     if (strcmp(mode, "max") == 0)
     {
-        fprintf(out, "identifier;max volume (k.m3.year-1)\n");
+        fprintf(out, "identifiant;volume maximum (k.m3.an-1)\n");
     }
     else if (strcmp(mode, "src") == 0)
     {
-        fprintf(out, "identifier;source volume (k.m3.year-1)\n");
+        fprintf(out, "identifiant;volume source (k.m3.an-1)\n");
     }
     else if (strcmp(mode, "real") == 0)
     {
-        fprintf(out, "identifier;real volume (k.m3.year-1)\n");
+        fprintf(out, "identifiant;volume reel (k.m3.an-1)\n");
     }
 
-    WriteContext ctx = {out, mode};
-    avl_traverse_reverse(plants, write_plant, &ctx);
+   
+    ContexteEcriture ctx = {out, mode};
 
+    
+    avl_parcourir_inverse(usines, ecrire_usine, &ctx);
+
+    // Fermer le fichier de sortie et libérer l'arbre
     fclose(out);
-    avl_free(plants, free_plant_data);
+    avl_liberer(usines, liberer_donnees_usine);
     return 0;
 }
