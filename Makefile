@@ -1,23 +1,23 @@
-CC=gcc
-CFLAGS=-Wall -Wextra -std=c99 -g
-LDFLAGS=-lm
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -g
+EXEC = wildwater
 
-# On inclut bien main.c
-SRC=main.c avl_usine.c leak.c
-OBJ=$(SRC:.c=.o)
-DEPS=avl.h
-TARGET=wildwater
+# Liste des objets : on utilise les noms de fichiers actuels
+OBJ = main.o avl.o leaks.o
 
-all: $(TARGET)
+all: $(EXEC)
 
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
+$(EXEC): $(OBJ)
+	$(CC) $(OBJ) -o $(EXEC)
 
-%.o: %.c $(DEPS)
-	$(CC) $(CFLAGS) -c $< -o $@
+main.o: main.c avl.h
+	$(CC) $(CFLAGS) -c main.c -o main.o
 
-.PHONY: clean
+avl.o: avl.c avl.h
+	$(CC) $(CFLAGS) -c avl.c -o avl.o
+
+leaks.o: leaks.c avl.h
+	$(CC) $(CFLAGS) -c leaks.c -o leaks.o
+
 clean:
-	rm -f $(TARGET) $(OBJ)
-	rm -f histo_data_*.dat
-	# On garde le fichier .png et le .dat source !
+	rm -f *.o $(EXEC)
