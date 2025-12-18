@@ -1,188 +1,387 @@
 #include "avl.h"
-#include <string.h>
-#include <stdio.h>
 
 
-int avl_hauteur(NoeudAVL *noeud)
-{
-    if (noeud == NULL)
+
+static int maxi(int a, int b) {
+    if (a >= b)
+        return a;
+    return b;
+}
+
+static int mini(int a, int b) {
+    if (a <= b)
+        return a;
+    return b;
+}
+
+// Fonction pour trouver le maximum entre trois entiers
+static int max_trois(int a, int b, int c) {
+    int m = a;
+    if (b > m) m = b;
+    if (c > m) m = c;
+    return m;
+}
+
+// Fonction pour trouver le minimum entre trois entiers
+static int min_trois(int a, int b, int c) {
+    int m = a;
+    if (b < m) m = b;
+    if (c < m) m = c;
+    return m;
+}
+
+Usine creer_usine(const char *id_source, double capacite) {
+    Usine u;
+
+    u.id = strdup(id_source);
+    if (u.id == NULL) {
+       printf(" Erreur d'allocation memoire pour l'ID de l'usine \n ");
+        exit(1); 
+    }
+    
+    u.capacite_max = capacite;
+    u.volume_capte = 0.0;
+    u.volume_reel = 0.0;
+
+    return u;
+}
+
+
+AVL_Usine *creer_noeud_usine(Usine usine_donnees) {
+    AVL_Usine *nouveau_noeud = (AVL_Usine *)malloc(sizeof(AVL_Usine));
+    
+    if (nouveau_noeud == NULL) { 
+        printf("Echec d'allocation memoire pour le noeud AVL \n");
+        free(usine_donnees.id);
+        exit(1); 
+    }
+
+    nouveau_noeud->donnees = usine_donnees; 
+
+    nouveau_noeud->gauche = NULL;
+    nouveau_noeud->droite = NULL;
+    nouveau_noeud->equilibre = 0; 
+    
+    return nouveau_noeud;
+}
+
+
+int hauteur_noeud(AVL_Usine *noeud) {
+    if (noeud == NULL) {
         return 0;
-    return noeud->hauteur; 
-}
-
-
-static int avl_equilibre(NoeudAVL *noeud)
-{
-    if (noeud == NULL)
-        return 0;
-    
-    return noeud->gauche->hauteur - noeud->droite->hauteur
-}
-
-static int max(int a, int b)
-{
-    return (a > b) ? a : b;
-}
-
-
-static void mettre_a_jour_hauteur(NoeudAVL *noeud)
-{
-   
-    noeud->hauteur = 1 + max(avl_hauteur(noeud->gauche), avl_hauteur(noeud->droite));
-}
-
-
-NoeudAVL *avl_creer_noeud(const char *cle, void *donnee)
-{
-    
-    NoeudAVL *noeud = malloc(sizeof(NoeudAVL));
-    if (noeud == NULL)
-        return NULL;
-    noeud->cle = strdup(cle);
-    if (noeud->cle == NULL)
-    {
-        free(noeud);
-        return NULL;
-    }
-    noeud->donnee = donnee;
-    noeud->hauteur = 1;
-    noeud->gauche = NULL;
-    noeud->droite = NULL;
-    return noeud;
-}
-
-static NoeudAVL *rotation_droite(NoeudAVL *y)
-{
-    NoeudAVL *x = y->gauche;
-    NoeudAVL *T2 = x->droite;
-    x->droite = y;
-    y->gauche = T2;
-    // Use the renamed update function
-    mettre_a_jour_hauteur(y);
-    mettre_a_jour_hauteur(x);
-    return x;
-}
-
-static NoeudAVL *rotation_gauche(NoeudAVL *x)
-{
-    NoeudAVL *y = x->droite;
-    NoeudAVL *T2 = y->gauche;
-    y->gauche = x;
-    x->droite = T2;
-    // Use the renamed update function
-    mettre_a_jour_hauteur(x);
-    mettre_a_jour_hauteur(y);
-    return y;
-}
-
-
-NoeudAVL *avl_inserer(NoeudAVL *racine, const char *cle, void *donnee, NoeudAVL **trouve)
-{
-    if (racine == NULL)
-    {
-        
-        NoeudAVL *noeud = avl_creer_noeud(cle, donnee);
-        if (trouve)
-            *trouve = noeud;
-        return noeud;
     }
 
-    
-    int cmp = strcmp(cle, racine->cle);
-    if (cmp < 0)
-    {
-      
-        racine->gauche = avl_inserer(racine->gauche, cle, donnee, trouve);
-    }
-    else if (cmp > 0)
-    {
-        
-        racine->droite = avl_inserer(racine->droite, cle, donnee, trouve);
-    }
+    int hg = hauteur_noeud(noeud->gauche);
+    int hd = hauteur_noeud(noeud->droite);
+
+    if (hg > hd)
+    return 1 + hg;
     else
-    {
-        if (trouve)
-            *trouve = racine;
-        return racine;
-    }
-
-    
-   NoeudAVL * mettre_a_jour_hauteur(racine){
-    int balance = avl_equilibre(racine);
-
-   
-    if (balance > 1 && strcmp(cle, racine->gauche->cle) < 0)
-        return rotation_droite(racine);
-
-   
-    if (balance < -1 && strcmp(cle, racine->droite->cle) > 0)
-        return rotation_gauche(racine);
-
-    
-    if (balance > 1 && strcmp(cle, racine->gauche->cle) > 0)
-    {
-        
-        racine->gauche = rotation_gauche(racine->gauche);
-        return rotation_droite(racine);
-    }
-
-    
-    if (balance < -1 && strcmp(cle, racine->droite->cle) < 0)
-    {
-        
-        racine->droite = rotation_droite(racine->droite);
-        return rotation_gauche(racine);
-    }
-
-    return racine;
+    return 1 + hd;
 }
 
 
-NoeudAVL *avl_rechercher(NoeudAVL *racine, const char *cle)
-{
-    if (racine == NULL)
+int get_facteur_equilibre(AVL_Usine *noeud) {
+    if (noeud == NULL) {
+        return 0;
+    }
+    return hauteur_noeud(noeud->gauche) - hauteur_noeud(noeud->droite);
+}
+
+
+AVL_Usine *rotation_gauche_usine(AVL_Usine *a) {
+    if (a == NULL || a->droite == NULL) {
+        return a;
+    } 
+    
+    AVL_Usine *pivot;
+    int eq_a, eq_p;
+
+    pivot = a->droite;
+    a->droite = pivot->gauche;
+    pivot->gauche = a;
+
+    eq_a = a->equilibre;
+    eq_p = pivot->equilibre;
+
+    a->equilibre = eq_a - maxi(eq_p, 0) - 1;
+    pivot->equilibre = min_trois(eq_a - 2, eq_a + eq_p - 2, eq_p - 1);
+
+    a = pivot;
+    return a;
+}
+
+
+AVL_Usine *rotation_droite_usine(AVL_Usine *a) {
+    if (a == NULL || a->gauche == NULL) {
+        return a;
+    }
+
+    AVL_Usine *pivot;
+    int eq_a, eq_p;
+
+    pivot = a->gauche;
+    a->gauche = pivot->droite;
+    pivot->droite = a;
+
+    eq_a = a->equilibre;
+    eq_p = pivot->equilibre;
+
+    a->equilibre = eq_a - mini(eq_p, 0) + 1;
+    pivot->equilibre = max_trois(eq_a + 2, eq_a + eq_p + 2, eq_p + 1);
+
+    a = pivot;
+    return a;
+}
+
+
+AVL_Usine *double_rotation_gauche_usine(AVL_Usine *a) {
+    if (a == NULL || a->droite == NULL) {
+        return a;
+    }
+    
+    a->droite = rotation_droite_usine(a->droite);
+    return rotation_gauche_usine(a);
+}
+
+
+AVL_Usine *double_rotation_droite_usine(AVL_Usine *a) {
+    if (a == NULL || a->gauche == NULL) {
+        return a;
+    }
+    
+    a->gauche = rotation_gauche_usine(a->gauche);
+    return rotation_droite_usine(a);
+}
+
+
+AVL_Usine *equilibrer_usine(AVL_Usine *noeud) {
+    if (noeud == NULL) {
         return NULL;
-    int cmp = strcmp(cle, racine->cle);
-    if (cmp < 0)
-        
-        return avl_rechercher(racine->gauche, cle);
-    if (cmp > 0)
-        
-        return avl_rechercher(racine->droite, cle);
-    return racine;
+    }
+    
+    if (noeud->equilibre >= 2) {
+        if (noeud->droite->equilibre >=0) {
+             return rotation_gauche_usine(noeud);
+        } 
+        else {
+            return double_rotation_gauche_usine(noeud);
+        }
+    } 
+    else if (noeud->equilibre <= -2) {
+        if(noeud->gauche->equilibre <=0) {
+             return rotation_droite_usine(noeud);
+        }
+        else {
+             return double_rotation_droite_usine(noeud);
+        }     
+    }
+    return noeud;
+}  
+
+  
+
+AVL_Usine *avl_inserer_usine(AVL_Usine *a, Usine u, int *h) {
+    if (a == NULL) {
+        *h = 1;
+        return creer_noeud_usine(u);
+    }
+
+    int comparaison = strcmp(u.id, a->donnees.id);
+
+    if (comparaison < 0) {
+        a->gauche = avl_inserer_usine(a->gauche, u, h);
+        *h = -(*h);
+    } else if (comparaison > 0) {
+        a->droite = avl_inserer_usine(a->droite, u, h);
+    } else {
+        if (u.capacite_max > a->donnees.capacite_max) {
+             a->donnees.capacite_max = u.capacite_max;
+        }       
+        free(u.id);
+        *h = 0;
+        return a; 
+    }
+    if (*h !=0) {
+        a->equilibre = a->equilibre + *h;
+        a = equilibrer_usine(a);
+        if (a->equilibre == 0) {
+            *h = 0;
+        }
+        else {
+             *h = 1;
+        }
+    }
+    return a;
 }
 
 
-void avl_parcourir_inverse(NoeudAVL *racine, void (*rappel)(NoeudAVL *, void *), void *arg)
-{
-    if (racine == NULL)
-        return;
-    /
-    avl_parcourir_inverse(racine->droite, rappel, arg);
-    rappel(racine, arg);
-    
-    avl_parcourir_inverse(racine->gauche, rappel, arg);
+AVL_Usine *avl_rechercher_usine(AVL_Usine *racine, const char *id) {
+    if (racine == NULL) {
+        return NULL; 
+    }
+
+    int comparaison = strcmp(id, racine->donnees.id);
+
+    if (comparaison == 0) {
+        return racine; // Usine trouvée
+    } else if (comparaison < 0) {
+        return avl_rechercher_usine(racine->gauche, id); 
+    } else { 
+        return avl_rechercher_usine(racine->droite, id); 
+    }
 }
 
 
-void avl_liberer(NoeudAVL *racine, void (*liberer_donnee)(void *))
-{
-    if (racine == NULL)
+void avl_supprimer(AVL_Usine *racine) {
+    if (racine == NULL) {
         return;
-    
-    avl_liberer(racine->gauche, liberer_donnee);
-    avl_liberer(racine->droite, liberer_donnee);
-    free(racine->cle);
-    if (liberer_donnee && racine->donnee)
-        liberer_donnee(racine->donnee);
+    }
+    avl_supprimer(racine->gauche);
+    avl_supprimer(racine->droite);
+    free(racine->donnees.id);  
     free(racine);
 }
 
 
-int avl_compter(NoeudAVL *racine)
-{
-    if (racine == NULL)
-        return 0;
-    // Use the renamed struct member and avl_compter function
-    return 1 + avl_compter(racine->gauche) + avl_compter(racine->droite);
+//Lit le fichier de données et construit un AVL contenant les usines.
+
+AVL_Usine *lire_donnees_et_construire_avl() {
+
+    // Ouverture du fichier de données en lecture
+    FILE *fic = fopen(FICHIER_DONNEES, "r");
+    if (fic == NULL) {
+        printf("ERREUR: Le fichier %s est introuvable \n", FICHIER_DONNEES);
+        return NULL;
+    }
+
+    AVL_Usine *racine = NULL;
+    char line[MAX_LINE_SIZE];
+
+    //stocker les 5 champs séparés par ';'
+    char c1[MAX_CHAMP_SIZE], c2[MAX_CHAMP_SIZE], c3[MAX_CHAMP_SIZE], c4[MAX_CHAMP_SIZE], c5[MAX_CHAMP_SIZE];
+
+    // Saut de la ligne d'en-tête (noms des colonnes) pour eviter decalage et erreur
+    if (fgets(line, sizeof(line), fic) == NULL) {
+        fclose(fic);
+        return NULL;
+    }
+
+    // Lecture du fichier ligne par ligne
+    while (fgets(line, sizeof(line), fic)) {
+
+        // Découpage de la ligne en 5 champs séparés par ';'
+        if (sscanf(line,
+                   "%99[^;];%99[^;];%99[^;];%99[^;];%99[^\n]", c1, c2, c3, c4, c5) != 5) {
+            // Ligne mal formée : on l'ignore 
+            continue;
+        }
+
+        //Cas 1 : Définition d'une usine  et sa capa max
+        
+        if (strcmp(c1, "-") == 0 &&  strcmp(c3, "-") == 0 &&  strcmp(c5, "-") == 0) {
+
+            //  convertion de la capacite max  en nombre réel (double)
+            double capacite = atof(c4);
+
+            // Création de la structure Usine (ID + capacité max) puis  Insertion ou mise à jour de l'usine dans l'AVL
+            Usine u = creer_usine(c2, capacite);
+            int h = 0;
+            racine = avl_inserer_usine(racine, u, &h);
+        }
+
+        // Cas 2 : source ->usine
+        
+        else if (strcmp(c1, "-") == 0 &&  strcmp(c4, "-") != 0 && strcmp(c5, "-") != 0) {
+
+            // Recherche de l'usine concernée dans l'AVL
+            AVL_Usine *noeud_usine = avl_rechercher_usine(racine, c3);
+
+            // Si l'usine existe, on met à jour ses volumes
+            if (noeud_usine != NULL) {
+
+                // Conversion des valeurs numériques
+                double volume = atof(c4);
+                double fuite_pct = atof(c5);
+
+                // Calcul du volume réellement reçu après pertes
+                double volume_reel_traite =  volume * (1.0 - (fuite_pct / 100.0));
+
+                // Accumulation des volumes dans l'usine
+                noeud_usine->donnees.volume_capte += volume;
+                noeud_usine->donnees.volume_reel += volume_reel_traite;
+            }
+        }
+    }
+    fclose(fic);
+
+    return racine;
 }
+
+// Détermine comment  écrire la ligne (conversion et formatage correct).
+void ecrire_ligne_usine(FILE *fic, AVL_Usine *noeud) {
+    if (noeud == NULL) return;
+
+    // le sujet nous demande la conversion en millions de m³
+    double capacite_mm3 = noeud->donnees.capacite_max / CONVERSION_KM3_TO_MM3;
+    double capte_mm3 = noeud->donnees.volume_capte / CONVERSION_KM3_TO_MM3;
+    double reel_mm3 = noeud->donnees.volume_reel / CONVERSION_KM3_TO_MM3;
+
+    // Écriture au format CSV avec deux décimales
+    fprintf(fic, "%s;%.2f;%.2f;%.2f\n", noeud->donnees.id, capacite_mm3,capte_mm3,  reel_mm3);
+}
+
+
+//Parcours infixe inverse pour avoir un tri alphabetique inverse
+void parcourir_et_ecrire_inverse(AVL_Usine *noeud, FILE *fic) {
+    if (noeud == NULL) {
+        return;
+    }
+    parcourir_et_ecrire_inverse(noeud->droite, fic);
+    ecrire_ligne_usine(fic, noeud);
+    parcourir_et_ecrire_inverse(noeud->gauche, fic);
+}
+
+
+// Fonction  qui génère un fichier CSV à partir d’un AVL d’usines pourr tracer un histogramme des capacités et volumes traités.
+int generer_histogramme(AVL_Usine *racine, const char *nom_fichier_sortie) {
+    if (racine == NULL) {
+        printf("AVL vide, aucun histogramme genere.\n");
+        return 0;
+    }
+
+    // Ouverture du fichier de sortie en mode écriture
+    FILE *fic_out = fopen(nom_fichier_sortie, "w");
+    if (fic_out == NULL) {
+        printf("ERREUR: Impossible d'ouvrir le fichier de sortie %s.\n", nom_fichier_sortie);
+        return 2;
+    }
+
+    // Écriture de l'en-tête : le contenu de chaque colonne
+    fprintf(fic_out, "identifiant_usine;capacite_max (M.m3.year-1);volume_capte (M.m3.year-1);volume_reel (M.m3.year-1)\n");
+
+    // Lancement du parcours pour remplir le fichier
+    parcourir_et_ecrire_inverse(racine, fic_out);
+
+    fclose(fic_out);
+    return 0;
+}
+void liberer_avl_usine(AVL_Usine *racine) {
+    if (racine == NULL) return;
+    liberer_avl_usine(racine->gauche);
+    liberer_avl_usine(racine->droite);
+    if (racine->donnees.id != NULL) {
+        free(racine->donnees.id);
+    }
+    free(racine);
+}
+
+void liberer_troncons(Chainon_Troncon *debut) {
+    Chainon_Troncon *courant = debut;
+    while (courant != NULL) {
+        Chainon_Troncon *a_supprimer = courant;
+        courant = courant->suivant;
+        free(a_supprimer);
+    }
+}
+
