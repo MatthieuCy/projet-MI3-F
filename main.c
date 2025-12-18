@@ -1,52 +1,42 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "avl.h"
 
-#include "histo.h"
-#include "leaks.h"
 
-int main(int compte_arguments, char *arguments[]) // argc -> compte_arguments, argv -> arguments
-{
-    // Vérification du nombre minimum d'arguments
-    if (compte_arguments < 4)
-    {
-        fprintf(stderr, "Utilisation : %s <fichier_entree> <fichier_sortie> <mode> [id_usine]\n", arguments[0]);
-        fprintf(stderr, "Modes : max, src, real, leaks\n");
-        return 1;
+int main(int argc, char *argv[]) {
+    if (argc < 4) {
+        fprintf(stderr, "Usage: %s <mode> <fichier_entree> <option_ou_id>\n", argv[0]);
+        return 1; // Code erreur positif requis par le PDF
     }
 
-    const char *fichier_entree = arguments[1];
-    const char *fichier_sortie = arguments[2];
-    const char *mode = arguments[3];
+    char *mode = argv[1];
+    char *fichier_entree = argv[2]; // Devient dynamique
+    char *param = argv[3];
 
-    // Traitement des modes du module 'histo'
-    if (strcmp(mode, "max") == 0 || strcmp(mode, "src") == 0 || strcmp(mode, "real") == 0)
-    {
-        
-        return histo_traiter(fichier_entree, fichier_sortie, mode);
-    }
-    // Traitement du mode du module 'leaks'
-    else if (strcmp(mode, "leaks") == 0)
-    {
-        // Le mode 'leaks' nécessite un argument supplémentaire (l'identifiant de l'usine)
-        if (compte_arguments < 5)
-        {
-            fprintf(stderr, "Erreur : le mode 'leaks' nécessite un identifiant d'usine\n");
-            return 1;
+    if (strcmp(mode, "histo") == 0) {
+        // On passe le nom du fichier à la fonction de lecture
+        AVL_Usine *racine = lire_donnees_et_construire_avl(fichier_entree);
+        if (!racine) return 2;
+
+        if (generer_histogramme(racine, param) != 0) {
+            liberer_avl_usine(racine);
+            return 3;
         }
+        liberer_avl_usine(racine);
+    } 
+    else if (strcmp(mode, "leaks") == 0) {
+        AVL_Usine *racine_usine = lire_donnees_et_construire_avl(fichier_entree);
+        // On passe aussi le fichier au graphe
+        Graphe_Global *graphe = construire_graphe_distribution(fichier_entree);
         
-        const char *id_usine = arguments[4];
+        // calculer_rendement_distribution doit écrire "ID;-1.00" si ID non trouvé
+        double res = calculer_rendement_distribution(param, racine_usine, graphe, "leaks_history.dat");
         
-       
-        return fuites_traiter(fichier_entree, fichier_sortie, id_usine);
-    }
-    // Mode inconnu
-    else
-    {
-        fprintf(stderr, "Erreur : mode inconnu '%s'\n", mode);
-        return 1;
+        liberer_avl_usine(racine_usine);
+        liberer_graphe_complet(graphe);
+        
+        if (res < 0) return 4; // Erreur si l'ID n'existe pas
+    } else {
+        return 5;
     }
 
-    // Ceci est théoriquement unreachable mais inclus pour la conformité
-    return 0;
+    return 0; // Succès
 }
