@@ -1,335 +1,418 @@
-#include "leaks.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "avl.h"
 
-/
-static NoeudArbre *creer_noeud_arbre(const char *identifiant, double pourcentage_fuite)
-{
+Noeud_AVL_Recherche* creer_noeud_avl(const char *id_acteur_key, Noeud_Acteur *adresse_noeud) {
+    Noeud_AVL_Recherche *nouveau_noeud = (Noeud_AVL_Recherche*) malloc(sizeof(Noeud_AVL_Recherche));
     
-    NoeudArbre *noeud = malloc(sizeof(NoeudArbre));
-    if (noeud == NULL)
-        return NULL;
-
-    noeud->identifiant = strdup(identifiant);
-    if (noeud->identifiant == NULL)
-    {
-        free(noeud);
+    if (nouveau_noeud == NULL) {
         return NULL;
     }
-    noeud->pourcentage_fuite = pourcentage_fuite;
-    noeud->compte_enfants = 0;
-    noeud->enfants = NULL;
-    return noeud;
+    
+    nouveau_noeud->id_acteur_key = strdup(id_acteur_key);
+    if (nouveau_noeud->id_acteur_key == NULL) {
+        free(nouveau_noeud);
+        return NULL;
+    }
+
+    nouveau_noeud->adresse_noeud = adresse_noeud;
+    nouveau_noeud->gauche = NULL;
+    nouveau_noeud->droite = NULL;
+    nouveau_noeud->equilibre = 0; 
+    
+    return nouveau_noeud;
+}
+
+Noeud_Acteur* rechercher_avl(Noeud_AVL_Recherche *racine, const char *id_acteur_key) {
+    if (racine == NULL) {
+        return NULL;
+    }
+
+    int comparaison = strcmp(id_acteur_key, racine->id_acteur_key);
+
+    if (comparaison < 0) {
+        return rechercher_avl(racine->gauche, id_acteur_key);
+    } else if (comparaison > 0) {
+        return rechercher_avl(racine->droite, id_acteur_key);
+    } else {
+        return racine->adresse_noeud;
+    }
+}
+
+static int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+static int min(int a, int b) {
+    return (a < b) ? a : b;
+}
+
+static int maxi_trois(int a, int b, int c) {
+    int m = a;
+    if (b > m) m = b;
+    if (c > m) m = c;
+    return m;
+}
+
+// Fonction pour trouver le minimum entre trois entiers
+static int mini_trois(int a, int b, int c) {
+    int m = a;
+    if (b < m) m = b;
+    if (c < m) m = c;
+    return m;
+}
+int avl_recherche_hauteur(Noeud_AVL_Recherche *n) {
+    if (n == NULL)
+        return 0;
+
+    int hg = avl_recherche_hauteur(n->gauche);
+    int hd = avl_recherche_hauteur(n->droite);
+
+    if (hg > hd)
+        return 1 + hg;
+    else
+        return 1 + hd;
+}
+
+Noeud_AVL_Recherche* rotation_droite(Noeud_AVL_Recherche *y) {
+    if (y == NULL || y->gauche == NULL)
+        return y;
+
+    Noeud_AVL_Recherche *x = y->gauche;
+    Noeud_AVL_Recherche *T2 = x->droite; 
+    x->droite = y;
+    y->gauche = T2;
+    int eq_y = y->equilibre;
+    int eq_x = x->equilibre;
+
+    y->equilibre = eq_y - min(eq_x, 0) + 1;
+    x->equilibre = maxi_trois(eq_y + 2, eq_y + eq_x + 2, eq_x + 1);
+
+    return x;
 }
 
 
-static void ajouter_enfant(NoeudArbre *parent, NoeudArbre *enfant)
-{
-    // Utilisation du type renommé
-    MaillonEnfant *maillon = malloc(sizeof(MaillonEnfant));
-    if (maillon == NULL)
-        return;
+Noeud_AVL_Recherche* rotation_gauche(Noeud_AVL_Recherche *x) {
+    if (x == NULL || x->droite == NULL)
+        return x;
 
-    maillon->enfant = enfant;
-    // Ajout en tête de liste
-    maillon->suivant = parent->enfants;
-    parent->enfants = maillon;
-    parent->compte_enfants++;
+    Noeud_AVL_Recherche *y = x->droite;
+    Noeud_AVL_Recherche *T2 = y->gauche;
+    y->gauche = x;
+    x->droite = T2;
+    int eq_x = x->equilibre;
+    int eq_y = y->equilibre;
+
+    x->equilibre = eq_x - max(eq_y, 0) - 1;
+    y->equilibre = mini_trois(eq_x - 2, eq_x + eq_y - 2, eq_y - 1);
+
+    return y;
 }
 
-
-static void liberer_arbre(NoeudArbre *noeud)
-{
-    if (noeud == NULL)
-        return;
-
-    MaillonEnfant *maillon = noeud->enfants;
-    while (maillon)
-    {
-        MaillonEnfant *suivant = maillon->suivant;
-        // Libération récursive de l'enfant
-        liberer_arbre(maillon->enfant);
-        // Libération du maillon de la liste
-        free(maillon);
-        maillon = suivant;
+int avl_recherche_facteur_equilibre(Noeud_AVL_Recherche *n) {
+    if(n == NULL){
+        return 0;
     }
-    // Libération de l'identifiant et du noeud
-    free(noeud->identifiant);
-    free(noeud);
+    return avl_recherche_hauteur(n->gauche) - avl_recherche_hauteur(n->droite);
 }
 
+Noeud_AVL_Recherche* equilibrer_noeud(Noeud_AVL_Recherche *n) {
+    if (!n) return n;
 
-static double calculer_fuites_recursif(NoeudArbre *noeud, double volume_entrant)
-{
-    if (noeud == NULL || volume_entrant <= 0)
-        return 0.0;
+    int eq = avl_recherche_facteur_equilibre(n);
 
-    // Calcul de la fuite au niveau de ce noeud
-    double fuite = volume_entrant * (noeud->pourcentage_fuite / 100.0);
-    double restant = volume_entrant - fuite;
-
-    // Si c'est une feuille, le volume restant est perdu 
-    // Ici, on considère que seuls les fuites sont tracées, le reste est distribué aux enfants
-    if (noeud->compte_enfants == 0)
-    {
-        return fuite;
+    if (eq > 1 && avl_recherche_facteur_equilibre(n->gauche) >= 0)
+        return rotation_droite(n);
+    
+    if (eq > 1 && avl_recherche_facteur_equilibre(n->gauche) < 0) {
+        n->gauche = rotation_gauche(n->gauche);
+        return rotation_droite(n);
+    }
+    
+    if (eq < -1 && avl_recherche_facteur_equilibre(n->droite) <= 0)
+        return rotation_gauche(n);
+    
+    if (eq < -1 && avl_recherche_facteur_equilibre(n->droite) > 0) {
+        n->droite = rotation_droite(n->droite);
+        return rotation_gauche(n);
     }
 
-    // Répartition du volume restant également entre les enfants
-    double volume_par_enfant = restant / noeud->compte_enfants;
-    double fuite_totale = fuite;
-
-    // Appel récursif pour chaque enfant
-    MaillonEnfant *maillon = noeud->enfants;
-    while (maillon)
-    {
-        fuite_totale += calculer_fuites_recursif(maillon->enfant, volume_par_enfant);
-        maillon = maillon->suivant;
-    }
-
-    return fuite_totale;
+    return n;
 }
 
-
-int fuites_traiter(const char *fichier_entree, const char *fichier_sortie, const char *id_usine)
-{
-    FILE *fp = fopen(fichier_entree, "r");
-    if (fp == NULL)
-    {
-        fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier d'entrée %s\n", fichier_entree);
-        return 1;
+Noeud_Acteur* creer_noeud_acteur(const char *id, const char *id_usine) {
+    if (id == NULL || id_usine == NULL) {
+    return NULL;
+    }
+    Noeud_Acteur *acteur = (Noeud_Acteur*) malloc(sizeof(Noeud_Acteur));
+    if (acteur == NULL) {
+        return NULL; 
+    }
+    acteur->id_acteur = strdup(id);
+    acteur->id_usine_parent = strdup(id_usine);
+    
+    if (acteur->id_acteur == NULL || acteur->id_usine_parent == NULL) {
+        free(acteur->id_acteur);
+        free(acteur->id_usine_parent);
+        free(acteur);
+        return NULL;
     }
 
-    // AVL pour indexer les NoeudArbre par ID (clé = ID, donnée = pointeur NoeudArbre)
-    NoeudAVL *index_noeuds = NULL;
-    // Racine de l'arbre de fuites (l'usine principale)
-    NoeudArbre *racine_usine = NULL;
-    double volume_max_usine = 0.0;
-    int usine_trouvee = 0;
+    acteur->volume_entrant = 0.0;
+    acteur->volume_perdu_absolu = 0.0;
+   
+    acteur->parent = NULL; 
+    acteur->troncons_aval = NULL; 
+    acteur->nombre_enfants = 0;
+    
+    return acteur;
+}
 
-    char ligne[1024];
-    char **lignes = NULL; // Pour stocker toutes les lignes en mémoire
-    int compte_lignes = 0;
-    int capacite_lignes = 10000;
-
-    lignes = malloc(sizeof(char *) * capacite_lignes);
-    if (lignes == NULL)
-    {
-        fclose(fp);
-        return 1;
+int ajouter_troncon_aval(Noeud_Acteur *parent, Noeud_Acteur *enfant, double fuite_pct) {
+    Troncon_Enfant *nouveau_troncon = (Troncon_Enfant*) malloc(sizeof(Troncon_Enfant));
+    if (nouveau_troncon == NULL) {
+        return -1;
     }
 
-    // Phase 1: Lire toutes les lignes du fichier en mémoire 
-    while (fgets(ligne, sizeof(ligne), fp))
-    {
-        if (compte_lignes >= capacite_lignes)
-        {
-            capacite_lignes *= 2;
-            char **nouvelles_lignes = realloc(lignes, sizeof(char *) * capacite_lignes);
-            if (nouvelles_lignes == NULL)
-            {
-                for (int i = 0; i < compte_lignes; i++)
-                    free(lignes[i]);
-                free(lignes);
-                fclose(fp);
-                return 1;
-            }
-            lignes = nouvelles_lignes;
+    nouveau_troncon->fuite_pct = fuite_pct;
+    nouveau_troncon->acteur_aval = enfant;
+    
+    if (enfant->parent != NULL) {
+    }
+    enfant->parent = parent;
+    nouveau_troncon->suivant = parent->troncons_aval;
+    parent->troncons_aval = nouveau_troncon;
+    parent->nombre_enfants++;
+    
+    return 0; // Succès
+}
+
+Noeud_AVL_Recherche* inserer_avl(Noeud_AVL_Recherche *noeud, const char *id_acteur_key, Noeud_Acteur *adresse_noeud) {
+    if (noeud == NULL) {
+        return creer_noeud_avl(id_acteur_key, adresse_noeud);
+    }
+    
+    int comparaison = strcmp(id_acteur_key, noeud->id_acteur_key);
+
+    if (comparaison < 0) {
+        noeud->gauche = inserer_avl(noeud->gauche, id_acteur_key, adresse_noeud);
+    } else if (comparaison > 0) {
+        noeud->droite = inserer_avl(noeud->droite, id_acteur_key, adresse_noeud);
+    } else {
+        return noeud;
+    }
+
+    return equilibrer_noeud(noeud);
+}
+
+Graphe_Global* construire_graphe_distribution() {
+    Graphe_Global *graphe = (Graphe_Global*) malloc(sizeof(Graphe_Global));
+    if (graphe == NULL) {
+        printf("erreur echec d'allocution memoire \n");
+        return NULL;
+    }
+    graphe->racine_avl = NULL;
+    graphe->usine_cible = NULL;
+
+    FILE *fic = fopen(FICHIER_DONNEES, "r");
+    if (fic == NULL) {
+        fprintf(stderr, "ERREUR: Impossible d'ouvrir le fichier de données %s.\n", FICHIER_DONNEES);
+        free(graphe);
+        return NULL;
+    }
+
+    char line[MAX_LINE_SIZE];
+    char c1[MAX_CHAMP_SIZE], c2[MAX_CHAMP_SIZE], c3[MAX_CHAMP_SIZE], c4[MAX_CHAMP_SIZE], c5[MAX_CHAMP_SIZE];
+
+ 
+    if (fgets(line, sizeof(line), fic) == NULL) {
+        fclose(fic);
+        return graphe;
+    }
+
+    //  Lecture ligne par ligne et construction du graphe
+    while (fgets(line, sizeof(line), fic)) {
+        // Lire 5 champs séparés par des ';'
+        if (sscanf(line, "%99[^;];%99[^;];%99[^;];%99[^;];%99[^\n]", c1, c2, c3, c4, c5) != 5) {
+            continue; 
         }
-        lignes[compte_lignes] = strdup(ligne);
-        compte_lignes++;
-    }
-    fclose(fp);
+        
 
-    // Phase 2: Trouver le volume max de l'usine racine 
-    for (int i = 0; i < compte_lignes; i++)
-    {
-        char *l = lignes[i];
-        l[strcspn(l, "\n\r")] = 0;
+        if (strcmp(c1, "-") == 0 && strcmp(c5, "-") == 0) {
+            continue;
+        }
 
-        char col1[256] = "-", col2[256] = "-", col3[256] = "-", col4[256] = "-", col5[256] = "-";
-        char *copie_l = strdup(l);
+        // Cas 1 : Usine -> Stockage 
+        else if (strcmp(c1, "-") != 0 && strcmp(c2, "Facility complex") == 0 && strcmp(c5, "-") != 0) {
+            
+            Noeud_Acteur *stockage = creer_noeud_acteur(c3, c1); 
+            if (stockage == NULL) break;
+            
+
+            graphe->racine_avl = inserer_avl(graphe->racine_avl, c3, stockage);
+            if (graphe->racine_avl == NULL) break;
+        
+        }
+        
+        // Cas 2 : Autres tronçons 
+        else if (strcmp(c1, "-") != 0 && strcmp(c5, "-") != 0) {
+        
+            Noeud_Acteur *parent_acteur = rechercher_avl(graphe->racine_avl, c2);
+            
+            if (parent_acteur == NULL) { 
+                continue;
+            }
+
+
+            Noeud_Acteur *enfant_acteur = creer_noeud_acteur(c3, c1);
+            if (enfant_acteur == NULL) break;
+
+
+            graphe->racine_avl = inserer_avl(graphe->racine_avl, c3, enfant_acteur);
+            if (graphe->racine_avl == NULL) break;
 
         
-        char *token = strtok(copie_l, ";");
-        if (token)
-            strncpy(col1, token, sizeof(col1) - 1);
-        token = strtok(NULL, ";");
-        if (token)
-            strncpy(col2, token, sizeof(col2) - 1);
-        token = strtok(NULL, ";");
-        if (token)
-            strncpy(col3, token, sizeof(col3) - 1);
-        token = strtok(NULL, ";");
-        if (token)
-            strncpy(col4, token, sizeof(col4) - 1);
-        token = strtok(NULL, ";");
-        if (token)
-            strncpy(col5, token, sizeof(col5) - 1);
-
-        free(copie_l);
-
-        // Ligne de définition du volume max de l'usine : 
-        if (strcmp(col1, "-") == 0 && strcmp(col2, id_usine) == 0 && strcmp(col3, "-") == 0 && strcmp(col4, "-") != 0)
-        {
-            volume_max_usine = atof(col4);
-            usine_trouvee = 1;
-        }
+            double fuite_pct = atof(c5);
+            if (ajouter_troncon_aval(parent_acteur, enfant_acteur, fuite_pct) != 0) break;
+        } 
+        
+   
     }
+    
+    fclose(fic);
+    return graphe;
+}
 
-    // Si l'usine racine n'est pas trouvée, écrire -1 et quitter
-    if (!usine_trouvee)
-    {
-        for (int i = 0; i < compte_lignes; i++)
-            free(lignes[i]);
-        free(lignes);
 
-        FILE *out = fopen(fichier_sortie, "a");
-        /
-        if (out == NULL) { /* handle error */ return 1; }
-        fseek(out, 0, SEEK_END);
-        long pos = ftell(out);
-        if (pos == 0)
-        {
-            fprintf(out, "identifiant;Volume de fuite (M.m3.an-1)\n");
-        }
-        fprintf(out, "%s;-1\n", id_usine);
-        fclose(out);
+int compter_stockages(Noeud_AVL_Recherche *avl_noeud_recherche, const char *id_usine_cible) {
+    if (avl_noeud_recherche == NULL) {
         return 0;
     }
 
-    // Initialiser la racine de l'arbre de fuites
-    racine_usine = creer_noeud_arbre(id_usine, 0.0);
-    if (racine_usine == NULL)
-    {
-        for (int i = 0; i < compte_lignes; i++)
-            free(lignes[i]);
-        free(lignes);
-        return 1;
-    }
-
-    // Indexer la racine dans l'AVL
-    NoeudAVL *trouve = NULL;
-    index_noeuds = avl_inserer(index_noeuds, id_usine, racine_usine, &trouve);
-
-    /Phase 3: Construction itérative de l'arbre de fuites 
+    int count = 0;
+    Noeud_Acteur *acteur = avl_noeud_recherche->adresse_noeud;
     
-    int changements = 1;
-    while (changements)
-    {
-        changements = 0;
-        for (int i = 0; i < compte_lignes; i++)
-        {
-            char *l = lignes[i];
-            // ... (Parsing des colonnes col1 à col5, identique à Phase 2)
-            char col1[256] = "-", col2[256] = "-", col3[256] = "-", col4[256] = "-", col5[256] = "-";
-            char *copie_l = strdup(l);
-
-            char *token = strtok(copie_l, ";");
-            if (token)
-                strncpy(col1, token, sizeof(col1) - 1);
-            token = strtok(NULL, ";");
-            if (token)
-                strncpy(col2, token, sizeof(col2) - 1);
-            token = strtok(NULL, ";");
-            if (token)
-                strncpy(col3, token, sizeof(col3) - 1);
-            token = strtok(NULL, ";");
-            if (token)
-                strncpy(col4, token, sizeof(col4) - 1);
-            token = strtok(NULL, ";");
-            if (token)
-                strncpy(col5, token, sizeof(col5) - 1);
-
-            free(copie_l);
-            // Si la colonne 3 (destinataire) est vide, on ignore
-            if (strcmp(col3, "-") == 0)
-                continue;
-
-            // Une ligne représente un segment PlantSegment (PlantID -> ID_PLANT/Source)
-            int est_segment_usine = (strcmp(col1, id_usine) == 0);
-            // OU un segment de stockage (Source -> PlantID)
-            int est_usine_vers_stockage = (strcmp(col1, "-") == 0 && strcmp(col2, id_usine) == 0);
-
-            if (!est_segment_usine && !est_usine_vers_stockage)
-                continue;
-
-            // 1. Chercher le noeud parent (col2) dans l'index AVL
-            AVLNode *noeud_parent_avl = avl_rechercher(index_noeuds, col2);
-            if (noeud_parent_avl == NULL)
-                continue; // Le parent n'est pas encore dans l'arbre
-
-            // 2. Vérifier si le noeud enfant (col3) existe déjà
-            AVLNode *noeud_enfant_avl = avl_rechercher(index_noeuds, col3);
-            if (noeud_enfant_avl != NULL)
-                continue; // L'enfant est déjà connecté
-
-            // 3. Créer et connecter l'enfant
-            double pourcentage_fuite = (strcmp(col5, "-") != 0) ? atof(col5) : 0.0;
-            NoeudArbre *enfant = creer_noeud_arbre(col3, pourcentage_fuite);
-            if (enfant == NULL)
-                continue;
-
-            NoeudArbre *parent = (NoeudArbre *)noeud_parent_avl->donnee;
-            ajouter_enfant(parent, enfant); // Ajouter au noeud parent réel
-
-            // 4. Indexer l'enfant pour les prochaines itérations
-            index_noeuds = avl_inserer(index_noeuds, col3, enfant, NULL);
-            changements = 1; // Un noeud a été ajouté, il faut relancer la boucle
-        }
+    // si stockage et appartient à l'usine 
+    if (strncmp(acteur->id_acteur, "Storage", 7) == 0 && strcmp(acteur->id_usine_parent, id_usine_cible) == 0) {
+        count = 1;
     }
 
-    // --- Phase 4: Calcul des fuites ---
-    double fuites_totales = 0.0;
+    // parcours infixe
+    count += compter_stockages(avl_noeud_recherche->gauche, id_usine_cible);
+    count += compter_stockages(avl_noeud_recherche->droite, id_usine_cible);
 
-    if (racine_usine->compte_enfants > 0)
-    {
-        // Répartition initiale du volume max sur les premiers enfants
-        double volume_par_enfant = volume_max_usine / racine_usine->compte_enfants;
-        MaillonEnfant *maillon = racine_usine->enfants;
-        while (maillon)
-        {
-            // La racine n'a pas de fuite propre dans ce modèle, on commence la récursion sur les enfants
-            fuites_totales += calculer_fuites_recursif(maillon->enfant, volume_par_enfant);
-            maillon = maillon->suivant;
-        }
-    }
-
-    // Conversion en millions de m³
-    double fuites_totales_mm3 = fuites_totales / 1000000.0;
-
-    // --- Phase 5: Écriture du résultat et nettoyage ---
-
-    FILE *out = fopen(fichier_sortie, "a");
-    // ... (gestion des erreurs et écriture du résultat)
-    if (out == NULL)
-    {
-        fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier de sortie %s\n", fichier_sortie);
-        liberer_arbre(racine_usine);
-        // L'AVL n'indexait que des pointeurs, pas besoin de fonction de libération des données (NULL)
-        avl_liberer(index_noeuds, NULL);
-        for (int i = 0; i < compte_lignes; i++)
-            free(lignes[i]);
-        free(lignes);
-        return 1;
-    }
-
-    fseek(out, 0, SEEK_END);
-    long pos = ftell(out);
-    if (pos == 0)
-    {
-        fprintf(out, "identifiant;Volume de fuite (M.m3.an-1)\n");
-    }
-    fprintf(out, "%s;%.6f\n", id_usine, fuites_totales_mm3);
-    fclose(out);
-
-    // Nettoyage final
-    liberer_arbre(racine_usine);
-    avl_liberer(index_noeuds, NULL);
-    for (int i = 0; i < compte_lignes; i++)
-        free(lignes[i]);
-    free(lignes);
-
-    return 0;
+    return count;
 }
+
+
+
+void propager_volume_et_calculer_pertes(Noeud_Acteur *noeud_courant, double volume_entrant_total, double *total_pertes) {
+
+    if (noeud_courant == NULL || noeud_courant->nombre_enfants == 0) {
+        return; 
+    }
+
+    // répartition equitable du volume entre les enfants
+    double volume_par_troncon = volume_entrant_total / (double)noeud_courant->nombre_enfants;
+
+    Troncon_Enfant *troncon = noeud_courant->troncons_aval;
+
+    while (troncon != NULL) {
+
+        double fuite_pct = troncon->fuite_pct;
+        double volume_perdu_troncon = volume_par_troncon * (fuite_pct / 100.0);
+        double volume_transmis_troncon = volume_par_troncon - volume_perdu_troncon;
+
+        *total_pertes += volume_perdu_troncon;
+
+        propager_volume_et_calculer_pertes(troncon->acteur_aval, volume_transmis_troncon, total_pertes);
+
+        troncon = troncon->suivant;
+    }
+}
+
+void parcourir_stockages_et_propager(Noeud_AVL_Recherche *avl_noeud_recherche, const char *id_usine_cible, double volume_par_stockage, double *total_pertes) {
+    if (avl_noeud_recherche == NULL) {
+        return;
+    }
+
+    parcourir_stockages_et_propager(avl_noeud_recherche->gauche, id_usine_cible, volume_par_stockage, total_pertes);
+
+    Noeud_Acteur *acteur = avl_noeud_recherche->adresse_noeud;
+
+    // "Storage" a 7 caractères , strncmp compare les N premiers caractères de deux chaînes
+    if (strncmp(acteur->id_acteur, "Storage", 7) == 0 && strcmp(acteur->id_usine_parent, id_usine_cible) == 0) {
+        propager_volume_et_calculer_pertes(acteur, volume_par_stockage, total_pertes);
+    }
+
+    parcourir_stockages_et_propager(avl_noeud_recherche->droite, id_usine_cible, volume_par_stockage, total_pertes);
+}
+
+
+
+double calculer_rendement_distribution(const char *id_usine, AVL_Usine *racine_usine_avl, Graphe_Global *graphe, const char *nom_fichier_sortie) {
+    
+    AVL_Usine *noeud_usine = avl_rechercher_usine(racine_usine_avl, id_usine);
+    double volume_depart_km3 = 0.0;
+    double total_pertes_km3 = 0.0; // Accumulation en k.m³ (milliers de m³)
+
+    if (noeud_usine != NULL) {
+        volume_depart_km3 = noeud_usine->donnees.volume_reel;
+        
+        int nb_stockages = compter_stockages(graphe->racine_avl, id_usine);
+
+        if (nb_stockages > 0) {
+            double volume_par_stockage = volume_depart_km3 / (double)nb_stockages;
+            parcourir_stockages_et_propager(graphe->racine_avl, id_usine, volume_par_stockage, &total_pertes_km3);
+        }
+    }
+
+    FILE *fic_out = fopen(nom_fichier_sortie, "a+");
+    if (fic_out == NULL) { 
+        printf("ERREUR: Impossible d'ouvrir le fichier de sortie %s.\n", nom_fichier_sortie);
+        return -2.0; 
+    }
+
+    fseek(fic_out, 0, SEEK_END);
+    if (ftell(fic_out) == 0) {
+        fprintf(fic_out, "identifiant;Volume_perdu (M.m3.year-1)\n");
+    }
+    
+    double volume_perdu_mm3 = total_pertes_km3 / CONVERSION_KM3_TO_MM3;
+
+    if (noeud_usine == NULL) {
+        fprintf(fic_out, "%s;-1.00\n", id_usine);
+        fclose(fic_out);
+        return -1.0;
+    } else {
+        fprintf(fic_out, "%s;%.2f\n", id_usine, volume_perdu_mm3); 
+    }
+    
+    fclose(fic_out);
+
+    return volume_perdu_mm3;
+}
+
+void liberer_avl_recherche(Noeud_AVL_Recherche *n) {
+    if (n == NULL) return;
+    liberer_avl_recherche(n->gauche);
+    liberer_avl_recherche(n->droite);
+
+    if (n->adresse_noeud != NULL) {
+        Troncon_Enfant *courant = n->adresse_noeud->troncons_aval;
+        while (courant != NULL) {
+            Troncon_Enfant *temp = courant;
+            courant = courant->suivant;
+            free(temp);
+        }
+        free(n->adresse_noeud->id_acteur);
+        free(n->adresse_noeud->id_usine_parent);
+        free(n->adresse_noeud);
+    }
+    free(n->id_acteur_key);
+    free(n);
+}
+void liberer_graphe_complet(Graphe_Global *graphe) {
+    if (graphe == NULL) return;
+    liberer_avl_recherche(graphe->racine_avl);
+    free(graphe);
+}
+
+
